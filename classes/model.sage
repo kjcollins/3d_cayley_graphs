@@ -1,4 +1,32 @@
 
+r"""
+<Very short 1-line summary>
+
+<Paragraph description>
+
+EXAMPLES::
+
+<Lots and lots of examples>
+
+AUTHORS:
+
+- YOUR NAME (2005-01-03): initial version
+
+- person (date in ISO year-month-day format): short desc
+
+"""
+
+# ****************************************************************************
+#       Copyright (C) 2013 YOUR NAME <your email>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+# ****************************************************************************
+
+
 class ReflectionGroupModel:
     def __init__(self):
 
@@ -44,7 +72,23 @@ class ReflectionGroupModel:
         if self.real:
             self.lie_type = group.cartan_type()[0]
 
-    def setPoint(self, point):
+    def point(self, point):
+        """
+        Sets the initial point on the model.
+
+        INPUT:
+
+        - ``point`` -- tuple of three integers
+
+        TEST:
+            sage: W = ReflectionGroupModel()
+            sage: W.setPoint((5,10,20))
+
+        ..TODO::
+            Add error checking for inputs that aren't
+            tuples of three integers.
+
+        """
         self.my_point = point
 
     def setReflections(self, reflList):
