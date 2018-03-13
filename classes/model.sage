@@ -141,6 +141,7 @@ class ReflectionGroupModel:
             self.buildComplexModel()
         if not self.canPrint():
             print "This model has disconnected pieces and will not 3D print properly. Please try a lower dimension."
+        self.obj = self.model.obj()
 
 
     def showModel(self):
