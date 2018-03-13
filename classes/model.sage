@@ -1,3 +1,8 @@
+###
+### This is the code that ties everything together.
+### Most of the actual work is done in reflections & weyl depending on
+### whether or not the group has a real realization
+###
 
 r"""
 <Very short 1-line summary>
