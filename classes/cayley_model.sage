@@ -15,7 +15,7 @@ AUTHORS:
 
 """
 
-class ClassName(object): #TODO we might want to inherit from an object. Graphics?
+class ReflectionGroup3d(object): #TODO we might want to inherit from an object. Graphics?
     """docstring for """
     def __init__(self, group, point=(2,1,3), proj_plane=[0,0,0,1]):
         if self._verify_group(group):
@@ -41,7 +41,7 @@ class ClassName(object): #TODO we might want to inherit from an object. Graphics
         self.vertices = self._construct_vertices_dict() # design?
 
         self.edge_properties = ["thickness", "color", "fill", "visible"]
-        self.edges = self._construct_edges_dict() 
+        self.edges = self._construct_edges_dict()
 
         self.outside_edges = {}
 
