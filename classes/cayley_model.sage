@@ -15,7 +15,11 @@ AUTHORS:
 
 """
 
-class ReflectionGroup3d(object): #TODO we might want to inherit from an object. Graphics?
+from sage.structure.sage_object import SageObject
+from random import randint
+
+
+class ReflectionGroup3d(SageObject): # we might want to inherit from an object. Graphics?
     """docstring for """
     def __init__(self, group, point=(2,1,3), proj_plane=[0,0,0,1]):
         if self._verify_group(group):
@@ -37,10 +41,10 @@ class ReflectionGroup3d(object): #TODO we might want to inherit from an object. 
 
         self.reflections = self.group.reflections()
 
-        self.vertex_properties = ["radius", "size", "shape", "label", "visible"]
+        self.vertex_properties = {"radius":1, "shape":"sphere", "label":None, "visible":True, "position":None}
         self.vertices = self._construct_vertices_dict() # design?
 
-        self.edge_properties = ["thickness", "color", "fill", "visible"]
+        self.edge_properties = {"thickness":.5, "color":"gray", "fill":True, "visible":True}
         self.edges = self._construct_edges_dict()
 
         self.outside_edges = {}
@@ -87,16 +91,51 @@ class ReflectionGroup3d(object): #TODO we might want to inherit from an object. 
 
 
     def _construct_vertices_dict(self):
-        pass
+        """
+        """
         # keys are possible properties of vertices
         # values are a second dictionary with vertices mapped
         # to the value of that property
+        for key, value in self.vertex_properties.items():
+            if key=="position":
+                self.vertices[key] = \
+                {v:v.matrix()*self.init_point for v in self.group.list()}
+                # style?
+            else:
+                self.vertices[key] = {v:value for v in self.group.list()}
+
+
+    def _construct_edges_dict(self):
+        """
+        """
+        cosets = {}
+
+        reflections = self.group.reflections().list()
+        subgroups = []
+        while reflections: # is nonempty
+            refl = reflections[0]
+            subgp = self.group.subgroup([refl])
+            i=1
+            while i<refl.order():
+                group.remove(refl^i)
+                i+=1
+
+        for key, value in self.edge_properties.items():
+            if key=="color":
+                for subgp in subgroups:
+                    color = (randint(0,255), randint(0,255), randint(0,255))
+                    self.edges[key] = {e:color for e in \
+                                       tuple(self.group.cosets(subgp))}
+                                       # style?
+            else:
+                self.edges[key] = {e:value for e in cosets.items()} #????
+                # defaults
+
 
     def _outside_edges(self): #if private, "create" method
                                 # if public, return if known, create if uninitialized?
-        pass
-
-    def _construct_edges_dict(self):
+        """
+        """
         pass
 
     def plot3d(self):
