@@ -16,7 +16,8 @@ AUTHORS:
 """
 
 from sage.structure.sage_object import SageObject
-from random import randint
+from random import randint, randrange, seed
+from time import time
 
 
 class ReflectionGroup3d(SageObject): # we might want to inherit from an object. Graphics?
@@ -29,11 +30,11 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             raise TypeError("Group input does not specify reflection group.")
 
         if self._verify_point(point):
-            self.init_point = point
+            self.init_point = vector(point) # decide about vector construction
         else:
             raise TypeError("Point not valid.")
 
-        if self._verify_plane(proj_plane):
+        if self._verify_proj_plane(proj_plane):
             self.proj_plane = proj_plane
         else:
             raise TypeError("Projection plane not valid.")
@@ -42,10 +43,19 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         self.reflections = self.group.reflections()
 
         self.vertex_properties = {"radius":1, "shape":"sphere", "label":None, "visible":True, "position":None}
-        self.vertices = self._construct_vertices_dict() # design?
+        self.vertices = {}
+        self._construct_vertices_dict() # design?
 
-        self.edge_properties = {"thickness":.5, "color":"gray", "fill":True, "visible":True}
-        self.edges = self._construct_edges_dict()
+        self.edge_properties = {"boundary_thickness":.5,
+                                "edge_thickness":.5,
+                                "color":"gray",
+                                "fill":True,
+                                "fill_size": .5,
+                                "visible":True}
+        # if x param exists: set it
+        # else: add default
+        self.edges = {}
+        self._construct_edges_dict()
 
         self.outside_edges = {}
 
@@ -60,7 +70,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         Return boolean of whether input can construct group
         (group itelf?)
         """
-        pass
+        return True
 
 
     def _verify_point(self, point):
@@ -69,7 +79,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         Return boolean of whether point is 3d
         (point itelf, if more permissive?)
         """
-        pass
+        return True
         # error check
         # accept 2d points and add third dimension?
         # or fail if not 3d point
@@ -81,13 +91,8 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         Return boolean of whether point is 3d
         (point itelf, if more permissive?)
         """
-        pass
+        return True
         #TODO raise warning
-
-    # def get_data_from_cayley_graph(self): # TODO rename
-    #     G = self.group.cayley_graph(generators=self.reflections(), side="left")
-    #     # every vertex has same number of cycles
-    #     # every vertex has one cycle for each color
 
 
     def _construct_vertices_dict(self):
@@ -108,28 +113,35 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
     def _construct_edges_dict(self):
         """
         """
-        cosets = {}
+        cosets = []
 
         reflections = self.group.reflections().list()
         subgroups = []
         while reflections: # is nonempty
             refl = reflections[0]
-            subgp = self.group.subgroup([refl])
+            subgroup = self.group.subgroup([refl])
+            subgroups.append(subgroup)
+            cosets += self.group.cosets(subgroup)
+            print cosets
             i=1
             while i<refl.order():
-                group.remove(refl^i)
+                reflections.remove(refl^i)
                 i+=1
 
         for key, value in self.edge_properties.items():
             if key=="color":
+                self.edges[key] = {}
+                acc = 0
+                seed(time())
                 for subgp in subgroups:
-                    color = (randint(0,255), randint(0,255), randint(0,255))
-                    self.edges[key] = {e:color for e in \
-                                       tuple(self.group.cosets(subgp))}
-                                       # style?
+                    acc += 1
+                    print acc, len(subgp), subgp
+                    color = (randrange(0,255,1), randint(0,255), randint(0,255))
+                    for e in self.group.cosets(subgp):
+                        self.edges[key][tuple(e)] = color
             else:
-                self.edges[key] = {e:value for e in cosets.items()} #????
                 # defaults
+                self.edges[key] = {tuple(e):value for e in cosets}
 
 
     def _outside_edges(self): #if private, "create" method
@@ -140,5 +152,46 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
     def plot3d(self):
         """
+        Creates graphics3dGroup object that represents the reflection group,
+        according to chosen visualization parameters
         """
+        # for edge in edges:
+        #   if visible
+        #       call create edge
+
+        # for vertex in vertices:
+        #   if visible
+        #       add vertex (w/params)
         pass
+
+    def _create_edge(self, coset):
+        """
+        Creates edge object. Handles logic of order of edge --> how edge
+        is constructed
+        returns graphics 3d object that is just one edge
+        """
+        if len(coset) == 2:
+            return line3d() # parameters
+        else: # length is greater than 2
+            edge_points = [self.vertices["position"][coset_elt] for coset_elt in coset]
+            x = sage.plot.plot3d.base.Graphics3dGroup([])
+            if fill: #fix
+                _object += _thicken_polygon(Polyhedron(vertices=edge_points),
+                            self.edges["thickness"][coset])
+            if boundaries: #fix
+                _object = _create_edge_boundaries()
+
+            #.projection().render_solid_3d(color=Color(self.reflection_colors[r]))
+            return _object #parameters
+
+
+
+    def _thicken_polygon(polytope_in_2d, thickness):
+        new_points = []
+        normal_vector = (vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))
+        for point in polytope_in_2d.vertices():
+            point1 = vector(point) + thickness*normal_vector
+            point2 = vector(point) - thickness*normal_vector
+            new_points.append(point1)
+            new_points.append(point2)
+        return boundaries(Polyhedron(vertices = new_points)).plot() #returns as a Graphics3d object
