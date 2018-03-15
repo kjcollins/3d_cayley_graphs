@@ -161,7 +161,39 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
     def _outside_edges(self): #if private, "create" method
                                 # if public, return if known, create if uninitialized?
         """
+        Creates a dictionary which categorizes edges as begin 1-faces of the polytope,
+        contained in 2-faces of the polytope, or internal to the structure.
         """
+        convex_bounding_polyhedron = Polyhedron(vertices = self.vertices["position"].values())
+        outside_edge_dictionary = {}
+        faces1_by_vertices = []
+        faces2_by_vertices = []
+        for face in (convex_bounding_polyhedron.faces(1)):
+            face_vertices = []
+            for i in range(len(face.vertices())):
+                face_vertices.append(tuple(face.vertices()[i]))
+            faces1_by_vertices.append(set(face_vertices))
+        for face in (convex_bounding_polyhedron.faces(2)):
+            face_vertices = []
+            for i in range(len(face.vertices())):
+                face_vertices.append(tuple(face.vertices()[i]))
+            faces2_by_vertices.append(set(face_vertices))
+        for k in self.W.reflections():
+            S = self.W.subgroup([k])
+            for j in range(len(self.W.cosets(S))):
+                vertex_set = []
+                for grp_elm in self.W.cosets(S)[j]:
+                    coordinates = tuple(self.vertices["position"][grp_elm])
+                    vertex_set.append(coordinates)
+                if set(vertex_set) in faces1_by_vertices:
+                    outside_edge_dictionary[tuple(self.W.cosets(S)[j])] = "1-face"
+                elif set(vertex_set) not in faces1_by_vertices:
+                    for two_face in faces2_by_vertices:
+                        if set(vertex_set).issubset(two_face):
+                            outside_edge_dictionary[tuple(self.W.cosets(S)[j])] = "external edge"
+                        else:
+                            outside_edge_dictionary[tuple(self.W.cosets(S)[j])] = "internal edge"
+
         pass
 
     def plot3d(self):
