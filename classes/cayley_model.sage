@@ -74,16 +74,18 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         return True
 
 
-    def _verify_point(self, point):
+    def _verify_point(self, group, point):
         """
         Perform error checking on point input
-        Return boolean of whether point is 3d
-        (point itelf, if more permissive?)
+        Return boolean of whether point is appropriate for group
+	If rank two reflection group, need 2d point
+	else need 3d point
         """
-        return True
-        # error check
-        # accept 2d points and add third dimension?
-        # or fail if not 3d point
+  	if group.rank() == len(point):
+           return True
+    	else:
+	   return False
+	   print "Check dimension of point (does not match group rank)"
 
 
     def _verify_proj_plane(self, plane):
