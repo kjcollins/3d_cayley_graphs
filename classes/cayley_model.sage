@@ -78,14 +78,14 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         """
         Perform error checking on point input
         Return boolean of whether point is appropriate for group
-	If rank two reflection group, need 2d point
-	else need 3d point
+	      If rank two reflection group, need 2d point
+        else need 3d point
         """
-  	if group.rank() == len(point):
+  	    if group.rank() == len(point):
            return True
-    	else:
-	   return False
-	   print "Check dimension of point (does not match group rank)"
+    	  else:
+	         return False
+	         print "Check dimension of point (does not match group rank)"
 
 
     def _verify_proj_plane(self, plane):
