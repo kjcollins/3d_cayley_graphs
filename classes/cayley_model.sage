@@ -9,9 +9,10 @@ EXAMPLES::
 
 AUTHORS:
 
-- YOUR NAME (2005-01-03): initial version
-
-- person (date in ISO year-month-day format): short desc
+- Kate Collins (2018-03-15): initial version
+- Elizabeth Drellich (2018-03-15): initial version
+- Eric Stucky (2018-03-15): initial version
+- Kaisa Taipale (2018-03-15): initial version
 
 """
 
