@@ -42,15 +42,16 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         self.reflections = self.group.reflections()
 
-        self.vertex_properties = {"radius":1, "shape":"sphere", "label":None, "visible":True, "position":None}
+        self.vertex_properties = {"radius":1, "shape":"sphere", "label":None, "visible":True, "position":None, "color":"gray"}
         self.vertices = {}
         self._construct_vertices_dict() # design?
 
-        self.edge_properties = {"boundary_thickness":.5,
-                                "edge_thickness":.5,
+        self.edge_properties = {"edge_thickness":.5,
                                 "color":"gray",
                                 "fill":True,
                                 "fill_size": .5,
+                                "boundaries": True,
+                                "boundary_thickness":.5,
                                 "visible":True}
         # if x param exists: set it
         # else: add default
@@ -155,14 +156,18 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         Creates graphics3dGroup object that represents the reflection group,
         according to chosen visualization parameters
         """
-        # for edge in edges:
-        #   if visible
-        #       call create edge
+        x = sage.plot.plot3d.base.Graphics3dGroup([])
 
-        # for vertex in vertices:
-        #   if visible
-        #       add vertex (w/params)
-        pass
+        for edge, visible in self.edges['visible'].items():
+            if visible:
+                x += self._create_edge(edge)
+
+        for vertex, visible in self.vertices['visible'].items():
+            if visible:
+                x += point3d(self.vertices["position"][vertex],
+                color = self.vertices["color"][vertex],
+                size = self.vertices["radius"][vertex])
+        return x
 
     def _create_edge(self, coset):
         """
@@ -170,28 +175,41 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         is constructed
         returns graphics 3d object that is just one edge
         """
+        edge_points = [self.vertices["position"][coset_elt] for coset_elt in coset]
         if len(coset) == 2:
-            return line3d() # parameters
+            return line3d(edge_points) # parameters
         else: # length is greater than 2
-            edge_points = [self.vertices["position"][coset_elt] for coset_elt in coset]
-            x = sage.plot.plot3d.base.Graphics3dGroup([])
-            if fill: #fix
-                _object += _thicken_polygon(Polyhedron(vertices=edge_points),
+
+            _object = sage.plot.plot3d.base.Graphics3dGroup([])
+            edge_polyhedron = Polyhedron(vertices=edge_points)
+            if self.edges["fill"][coset]: #fix
+                _object += _thicken_polygon(edge_polyhedron,
                             self.edges["thickness"][coset])
-            if boundaries: #fix
-                _object = _create_edge_boundaries()
+            if self.edges["boundaries"][coset]: #fix
+                _object += _create_edge_boundaries(edge_polyhedron)
+
+            if not self.edges["fill"][coset] and not self.edges["boundaries"][coset]:
+                raise NotImplementedError("Visible edge has neither fill nor boundary!")
 
             #.projection().render_solid_3d(color=Color(self.reflection_colors[r]))
             return _object #parameters
 
 
+    def _create_edge_boundaries(edge_polyhedron):
+        # get 1faces of edge, and add to object
+        _object = sage.plot.plot3d.base.Graphics3dGroup([])
+        edge_face = edge_polyhedron.faces(2)[0]
+        v_list = list(edge_face.vertices())
+        v_list.append(edge_face.vertices()[0])
+        _object += line3d(v_list, color="purple", radius=.1)
+        return _object
 
     def _thicken_polygon(polytope_in_2d, thickness):
         new_points = []
         normal_vector = (vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))
         for point in polytope_in_2d.vertices():
-            point1 = vector(point) + thickness*normal_vector
-            point2 = vector(point) - thickness*normal_vector
+            point1 = vector(point) + .5*thickness*normal_vector
+            point2 = vector(point) - .5*thickness*normal_vector
             new_points.append(point1)
             new_points.append(point2)
-        return boundaries(Polyhedron(vertices = new_points)).plot() #returns as a Graphics3d object
+        return Polyhedron(vertices = new_points).plot() #returns as a Graphics3d object
