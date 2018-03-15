@@ -69,7 +69,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         """
         Perform error checking on group input
         Return boolean of whether input can construct group
-        (group itelf?)
+        (group itself?)
         """
         return True
 
@@ -82,21 +82,24 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         else need 3d point
         """
   	    if group.rank() == len(point):
-           return True
+            return True
     	  else:
-	         return False
-	         print "Check dimension of point (does not match group rank)"
+	          return False
+	          print "Check dimension of point (does not match group rank)"
 
 
     def _verify_proj_plane(self, plane):
         """
         Perform error checking on point input
         Return boolean of whether point is 3d
-        (point itelf, if more permissive?)
+        (point itself, if more permissive?)
         """
-        return True
-        #TODO raise warning
-
+        if len(plane) == 4:
+            return True
+        else:
+            return False
+            print "Choose normal vector in R^4"
+            
 
     def _construct_vertices_dict(self):
         """
