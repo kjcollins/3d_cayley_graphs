@@ -195,7 +195,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
                         else:
                             outside_edge_dictionary[tuple(self.W.cosets(S)[j])] = "internal edge"
 
-        pass
+        return outside_edge_dictionary
 
     def plot3d(self):
         """
