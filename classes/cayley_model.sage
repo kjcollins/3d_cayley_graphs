@@ -71,7 +71,15 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         Return boolean of whether input can construct group
         (group itself?)
         """
-        return True
+        if group.parent() in [WeylGroup(["A",2]).parent(), ReflectionGroup(3,1,2).parent()]:
+            if group.rank() < 3:
+                return True
+            elif group.rank() == 3:
+                if group.is_real():
+                    return True
+            else:
+                return False
+                print "Group must be real with rank < 4, or complex with rank < 3"
 
 
     def _verify_point(self, group, point):
@@ -83,9 +91,9 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         """
   	    if group.rank() == len(point):
             return True
-    	  else:
-	          return False
-	          print "Check dimension of point (does not match group rank)"
+    	else:
+	        return False
+	        print "Check dimension of point (does not match group rank)"
 
 
     def _verify_proj_plane(self, plane):
@@ -99,7 +107,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         else:
             return False
             print "Choose normal vector in R^4"
-            
+
 
     def _construct_vertices_dict(self):
         """
