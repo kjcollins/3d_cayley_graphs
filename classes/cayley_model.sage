@@ -9,9 +9,10 @@ EXAMPLES::
 
 AUTHORS:
 
-- YOUR NAME (2005-01-03): initial version
-
-- person (date in ISO year-month-day format): short desc
+- Kate Collins (2018-03-15): initial version
+- Elizabeth Drellich (2018-03-15): initial version
+- Eric Stucky (2018-03-15): initial version
+- Kaisa Taipale (2018-03-15): initial version
 
 """
 
@@ -68,32 +69,45 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
     def _verify_group(self, group):
         """
         Perform error checking on group input
-        Return boolean of whether input can construct group
-        (group itelf?)
+        Return boolean of whether input group can be represented in 3d
         """
-        return True
+        if group.parent() in [WeylGroup(["A",2]).parent(), ReflectionGroup(3,1,2).parent()]:
+            if group.rank() < 3:
+                return True
+            elif group.rank() == 3:
+                if group.is_real():
+                    return True
+            else:
+                return False
+                print "Group must be real with rank < 4, or complex with rank < 3"
 
 
-    def _verify_point(self, point):
+    def _verify_point(self, group, point):
         """
         Perform error checking on point input
-        Return boolean of whether point is 3d
-        (point itelf, if more permissive?)
+        Return boolean of whether point is appropriate for group
+	    If rank two reflection group, need 2d point
+        else need 3d point
         """
-        return True
-        # error check
-        # accept 2d points and add third dimension?
-        # or fail if not 3d point
+  	    if group.rank() == len(point):
+            return True
+    	else:
+	        return False
+	        print "Check dimension of point (does not match group rank)"
 
 
     def _verify_proj_plane(self, plane):
         """
-        Perform error checking on point input
-        Return boolean of whether point is 3d
-        (point itelf, if more permissive?)
+        Perform error checking on vector input
+        Return boolean of whether vector is the normal to a hyperplane
+        in 4d
         """
-        return True
-        #TODO raise warning
+        if len(plane) == 4:
+            if tuple(plane) != (0,0,0,0):
+                return True
+        else:
+            return False
+            print "Choose a non-zero normal vector in R^4"
 
 
     def _construct_vertices_dict(self):
@@ -148,7 +162,39 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
     def _outside_edges(self): #if private, "create" method
                                 # if public, return if known, create if uninitialized?
         """
+        Creates a dictionary which categorizes edges as begin 1-faces of the polytope,
+        contained in 2-faces of the polytope, or internal to the structure.
         """
+        convex_bounding_polyhedron = Polyhedron(vertices = self.vertices["position"].values())
+        outside_edge_dictionary = {}
+        faces1_by_vertices = []
+        faces2_by_vertices = []
+        for face in (convex_bounding_polyhedron.faces(1)):
+            face_vertices = []
+            for i in range(len(face.vertices())):
+                face_vertices.append(tuple(face.vertices()[i]))
+            faces1_by_vertices.append(set(face_vertices))
+        for face in (convex_bounding_polyhedron.faces(2)):
+            face_vertices = []
+            for i in range(len(face.vertices())):
+                face_vertices.append(tuple(face.vertices()[i]))
+            faces2_by_vertices.append(set(face_vertices))
+        for k in self.W.reflections():
+            S = self.W.subgroup([k])
+            for j in range(len(self.W.cosets(S))):
+                vertex_set = []
+                for grp_elm in self.W.cosets(S)[j]:
+                    coordinates = tuple(self.vertices["position"][grp_elm])
+                    vertex_set.append(coordinates)
+                if set(vertex_set) in faces1_by_vertices:
+                    outside_edge_dictionary[tuple(self.W.cosets(S)[j])] = "1-face"
+                elif set(vertex_set) not in faces1_by_vertices:
+                    for two_face in faces2_by_vertices:
+                        if set(vertex_set).issubset(two_face):
+                            outside_edge_dictionary[tuple(self.W.cosets(S)[j])] = "external edge"
+                        else:
+                            outside_edge_dictionary[tuple(self.W.cosets(S)[j])] = "internal edge"
+
         pass
 
     def plot3d(self):
