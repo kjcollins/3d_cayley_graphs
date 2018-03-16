@@ -31,22 +31,14 @@ from time import time
 class ReflectionGroup3d(SageObject): # we might want to inherit from an object. Graphics?
     """docstring for """
     def __init__(self, group, point=(2,1,3), proj_plane=[0,0,0,1]):
-        if self._verify_group(group):
-            self.group = group
-        else:
-            # TODO find better error, and style of raising it
-            raise TypeError("Group input does not specify reflection group.")
+        self._verify_group(group):
+        self.group = group
 
-        if self._verify_point(group, point):
-            self.init_point = vector(point) # decide about vector construction
-        else:
-            raise TypeError("Point not valid.")
+        self._verify_point(group, point):
+        self.init_point = vector(point) # decide about vector construction
 
-        if self._verify_proj_plane(proj_plane):
-            self.proj_plane = proj_plane
-        else:
-            raise TypeError("Projection plane not valid.")
-            # any other errors externally?
+        self._verify_proj_plane(proj_plane):
+        self.proj_plane = proj_plane
 
         self.reflections = self.group.reflections()
 
