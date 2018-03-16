@@ -70,8 +70,31 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         """
         Perform error checking on group input
         Return boolean of whether input group can be represented in 3d
+
+        INPUT:
+
+        - ''group'' -- a group
+
+        OUTPUT:
+
+        Boolean True if W is a complex reflection group of rank at most 2 or a is_real
+        reflection group of rank at most 3. If False, returns an error message.
+
+        EXAMPLES:
+
+        ::
+
+            sage: W = WeylGroup(["C",3])
+            sage: ReflectionGroup3d(W)
+
+        If the group's rank is too big::
+
+            sage: W = ReflectionGroup((5,1,3))
+            sage: ReflectionGroup3d(W)
+            Group must be real with rank < 4, or complex with rank < 3
+
         """
-        if group.parent() in [WeylGroup(["A",2]).parent(), ReflectionGroup(3,1,2).parent()]:
+        if group.parent() in [WeylGroup(["A",2]).parent(), ReflectionGroup((3,1,2)).parent()]:
             if group.rank() < 3:
                 return True
             elif group.rank() == 3:
@@ -88,6 +111,31 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         Return boolean of whether point is appropriate for group
 	    If rank two reflection group, need 2d point
         else need 3d point
+
+        INPUT:
+
+        - ''group'' -- a group
+
+        - ''point'' -- a tuple of integers
+
+        OUTPUT:
+
+        Boolean True if the group's rank is equal to the length of the tuple
+
+        EXAMPLES:
+
+        ::
+            sage: W = WeylGroup(["C",3])
+            sage: my_point = (1,2)
+            sage: ReflectionGroup3d(W, point=my_point)
+            Check dimension of point (does not match group rank)
+
+        ::
+            sage: W = W = WeylGroup(["C",3])
+            sage: my_point = (1,2,3)
+            sage: ReflectionGroup3d(W, point=my_point)
+
+
         """
   	    if group.rank() == len(point):
             return True
