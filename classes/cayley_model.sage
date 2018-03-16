@@ -30,7 +30,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             # TODO find better error, and style of raising it
             raise TypeError("Group input does not specify reflection group.")
 
-        if self._verify_point(point):
+        if self._verify_point(group, point):
             self.init_point = vector(point) # decide about vector construction
         else:
             raise TypeError("Point not valid.")
@@ -202,7 +202,6 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             subgroup = self.group.subgroup([refl])
             subgroups.append(subgroup)
             cosets += self.group.cosets(subgroup)
-            print cosets
             i=1
             while i<refl.order():
                 reflections.remove(refl^i)
@@ -215,7 +214,6 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
                 seed(time())
                 for subgp in subgroups:
                     acc += 1
-                    print acc, len(subgp), subgp
                     color = (randrange(0,255,1), randint(0,255), randint(0,255))
                     for e in self.group.cosets(subgp):
                         self.edges[key][tuple(e)] = color
@@ -357,7 +355,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         return _object
 
-    def _thicken_polygon(polytope_in_2d, thickness):
+    def _thicken_polygon(self, polytope_in_2d, thickness):
         r"""
         Return graphics object representing polyhedron in 3d with thickness.
 
@@ -371,17 +369,19 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         EXAMPLES:
 
-        ::
-            sage:
-            sage:
-            sage:
-        ::
-            sage:
-            sage:
-            sage:
+        Example of a polygon edge::
+            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))
+            sage: p = Polyhedron(vertices = [[1, 2, 3], [0,1,0], [1,0,1]])
+            sage: poly_3d = w._thicken_polygon(p, .01)
+            sage: poly_3d.all
+            [Graphics3d Object, Graphics3d Object, Graphics3d Object, Graphics3d Object]
+
         """
         new_points = []
-        normal_vector = (vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))
+        verts = polytope_in_2d.vertices()
+        normal_vector = (vector(verts[1]) - \
+                         vector(verts[0])).cross_product(vector(verts[2]) \
+                          - vector(verts[0]))
 
         for point in polytope_in_2d.vertices():
             point1 = vector(point) + .5*thickness*normal_vector
