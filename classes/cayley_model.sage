@@ -89,7 +89,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 	    If rank two reflection group, need 2d point
         else need 3d point
         """
-  	    if group.rank() == len(point):
+        if group.rank() == len(point):
             return True
     	else:
 	        return False
@@ -241,8 +241,23 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             return _object #parameters
 
 
-    def _create_edge_boundaries(edge_polyhedron):
-        # get 1faces of edge, and add to object
+    def _create_edge_boundaries(self, edge_polyhedron):
+        # get faces of edge, and add to object
+        r"""
+        Return graphics object with boundaries to a higher order edge (order>2).
+
+        INPUT:
+
+        - ``edge_polyhedron`` -- a :class:`Polyhedron`.
+
+        OUTPUT:
+
+        The edges, or boundaries, of the polyhedron as a graphics object.
+
+        EXAMPLES:
+
+
+        """
         _object = sage.plot.plot3d.base.Graphics3dGroup([])
         edge_face = edge_polyhedron.faces(2)[0]
         v_list = list(edge_face.vertices())
@@ -251,6 +266,8 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         return _object
 
     def _thicken_polygon(polytope_in_2d, thickness):
+        r"""
+        """
         new_points = []
         normal_vector = (vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))
         for point in polytope_in_2d.vertices():
