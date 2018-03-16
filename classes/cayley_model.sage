@@ -1,4 +1,4 @@
-r"""
+"""
 Model building class for rigid 3d cayley graphs of reflection groups.
 
 <Paragraph description>
@@ -113,10 +113,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             raise TypeError("Group should be defined as a WeylGroup or ReflectionGroup")
 
 
+
     def _verify_point(self, group, point):
         """
         Perform error checking on point input
-        Return boolean of whether point is appropriate for group
 	    If rank two reflection group, need 2d point
         else need 3d point
 
@@ -148,8 +148,9 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         if group.rank() == len(point):
             return True
     	else:
-	        return False
-	        raise TypeError("Check dimension of point (does not match group rank)")
+           return False
+           raise TypeError("Check dimension of point (does not match group rank)")
+
 
 
     def _verify_proj_plane(self, plane):
@@ -262,8 +263,36 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
     def plot3d(self):
         """
-        Creates graphics3dGroup object that represents the reflection group,
-        according to chosen visualization parameters
+        Creates graphics3dGroup object that represents the reflection
+        group, according to chosen visualization parameters.
+
+        This method does not take inputs; changes to parameters should
+        be made using the setter methods.
+
+        (2018-03-15): Setter methods are not currently implemented.
+        ***** EXAMPLES HAVE NOT BEEN PROPERLY TESTED.
+
+        EXAMPLES:
+
+            sage: W = ReflectionGroup3d(ReflectionGroup(['A',3]))
+            sage: W.plot3d() #long time
+            Graphics3d Object
+
+        ::
+
+            sage: W = ReflectionGroup3d(ReflectionGroup(['A',3]))
+            sage: W.plot3d() #long time
+            Graphics3d Object
+
+
+        SEEALSO:
+            :func:`~sage.graphs.generic_graphs.GenericGraph.plot3d`
+
+
+        TODO:
+            Permit 4d real and 2d complex reflection group visualization
+            using proj_plane or a Schlegel projection
+
         """
         x = sage.plot.plot3d.base.Graphics3dGroup([])
 
@@ -321,7 +350,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
 
     def _create_edge_boundaries(self, edge_polyhedron):
-        r"""
+        """
         Return graphics object with boundaries to a higher order edge (order>2).
 
         INPUT:
