@@ -136,14 +136,12 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         EXAMPLES:
 
         ::
-
             sage: W = WeylGroup(["C",3])
             sage: my_point = (1,2)
             sage: ReflectionGroup3d(W, point=my_point)
             TypeError: Check dimension of point (does not match group rank)
 
         ::
-
             sage: W = WeylGroup(["C",3])
             sage: my_point = (1,2,3)
             sage: ReflectionGroup3d(W, point=my_point)
@@ -172,33 +170,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         OUTPUT:
 
-        Boolean True if plane is the normal vector of a suitable hyperplane for
-        projecting the final object into three dimensions.
-
-        EXAMPLES:
-
-        ::
-
-            sage: W = ReflectionGroup(3,1,2)
-            sage: ReflectionGroup3d(W, plane=(1,2,3,4))
-
-        ::
-
-            sage: W = ReflectionGroup(3,1,2)
-            sage: ReflectionGroup3d(W, plane=(0,0,0,0))
-            TypeError: plane is determined by a non-zero normal vector in R^4
-
-        ::
-
-            sage: W = ReflectionGroup(3,1,2)
-            sage: ReflectionGroup3d(W, plane=(1,2,3))
-            TypeError: plane is determined by a non-zero normal vector in R^4
-
-        ::
-
-            sage: W = ReflectionGroup(3,1,2)
-            sage: ReflectionGroup3d(W, plane=(1,2,3,sqrt(-3)))
-            TypeError: plane is determined by a non-zero normal vector in R^4
+        -
 
         """
         if len(plane) == 4:
@@ -215,16 +187,33 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
     def _construct_vertices_dict(self):
         """
-        Generates dictionary of vertex properties.
+        Create a dictionary whose keys are properties, and whose values
+        track the properties that individual vertices have.
 
-        INPUT:
+        In particular, values are themselves dictionaries, whose keys
+        are group elements and whose values are the values of the
+        corresponding properties.
+        
 
         OUTPUT:
 
+        A dictionary whose keys are strings corresponding to graphical
+        properties of the vertices in the 3d model, and whose values
+        are dictionaries. The value-dictionary associated to a
+        particular property consists of a group element and the value of
+        the property at its corresponding vertex.
+
+
+        EXAMPLES:
+        
+            sage: W = WeylGroup(["A",2])
+            sage: G = ReflectionGroup3d(W, (3,2))
+            sage: G.keys()
+            ['color', 'label', 'visible', 'shape', 'radius', 'position']
+            sage: G.vertices["position"]
+            [(3, 2), (5, -2), (-3, 5), (-5, 3), (2, -5), (-2, -3)]
+        
         """
-        # keys are possible properties of vertices
-        # values are a second dictionary with vertices mapped
-        # to the value of that property
         for key, value in self.vertex_properties.items():
             if key=="position":
                 self.vertices[key] = \
@@ -306,25 +295,26 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
     def plot3d(self):
         """
-        Creates graphics3dGroup object that represents the reflection
+        Create a graphics3dGroup object that represents the reflection
         group, according to chosen visualization parameters.
 
         This method does not take inputs; changes to parameters should
         be made using the setter methods.
 
         (2018-03-15): Setter methods are not currently implemented.
-        ***** EXAMPLES HAVE NOT BEEN PROPERLY TESTED.
 
         EXAMPLES:
 
-            sage: W = ReflectionGroup3d(ReflectionGroup(['A',3]))
-            sage: W.plot3d() #long time
+            sage: W = ReflectionGroup(['A',3]) #optional - gap3
+            sage: G = ReflectionGroup3d(W) 
+            sage: G.plot3d() #long time
             Graphics3d Object
 
         ::
 
-            sage: W = ReflectionGroup3d(ReflectionGroup(['A',3]))
-            sage: W.plot3d() #long time
+            sage: W = ReflectionGroup(['A',3]) #optional - gap3
+            sage: G = ReflectionGroup3d(W) 
+            sage: G.plot3d() #long time
             Graphics3d Object
 
 
@@ -335,7 +325,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         TODO:
             Permit 4d real and 2d complex reflection group visualization
             using proj_plane or a Schlegel projection
-
+            
         """
         x = sage.plot.plot3d.base.Graphics3dGroup([])
 
@@ -428,8 +418,8 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         return _object
 
-    def _thicken_polygon(self, polytope_in_2d, thickness):
-        r"""
+    def _thicken_polygon(polytope_in_2d, thickness):
+        """
         Return graphics object representing polyhedron in 3d with thickness.
 
         INPUT:
@@ -454,10 +444,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         - examples that better test what the graphics object contains
         """
         new_points = []
-        verts = polytope_in_2d.vertices()
-        normal_vector = (vector(verts[1]) - \
-                         vector(verts[0])).cross_product(vector(verts[2]) \
-                          - vector(verts[0]))
+        normal_vector = (vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))
 
         for point in polytope_in_2d.vertices():
             point1 = vector(point) + .5*thickness*normal_vector
