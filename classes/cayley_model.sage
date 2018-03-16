@@ -133,13 +133,15 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         EXAMPLES:
 
         ::
+
             sage: W = WeylGroup(["C",3])
             sage: my_point = (1,2)
             sage: ReflectionGroup3d(W, point=my_point)
             TypeError: Check dimension of point (does not match group rank)
 
         ::
-            sage: W = W = WeylGroup(["C",3])
+
+            sage: W = WeylGroup(["C",3])
             sage: my_point = (1,2,3)
             sage: ReflectionGroup3d(W, point=my_point)
 
@@ -164,15 +166,48 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         OUTPUT:
 
-        -
+        Boolean True if plane is the normal vector of a suitable hyperplane for
+        projecting the final object into three dimensions.
+
+        EXAMPLES:
+
+        ::
+
+            sage: W = ReflectionGroup(3,1,2)
+            sage: ReflectionGroup3d(W, plane=(1,2,3,4))
+
+        ::
+
+            sage: W = ReflectionGroup(3,1,2)
+            sage: ReflectionGroup3d(W, plane=(0,0,0,0))
+            TypeError: plane is determined by a non-zero normal vector in R^4
+
+        ::
+
+            sage: W = ReflectionGroup(3,1,2)
+            sage: ReflectionGroup3d(W, plane=(1,2,3))
+            TypeError: plane is determined by a non-zero normal vector in R^4
+
+        ::
+
+            sage: W = ReflectionGroup(3,1,2)
+            sage: ReflectionGroup3d(W, plane=(1,2,3,sqrt(-3)))
+            TypeError: plane is determined by a non-zero normal vector in R^4
 
         """
         if len(plane) == 4:
-            if tuple(plane) != (0,0,0,0):
-                return True
+            if [plane[k] in RR for k in range(4)] == [True, True, True, True]:
+                if tuple(plane) != (0,0,0,0):
+                    return True
+                else:
+                    return False
+                    raise TypeError("plane is determined by a non-zero normal vector in R^4")
+            else:
+                return False
+                raise TypeError("plane is determined by a non-zero normal vector in R^4")
         else:
             return False
-            raise TypeError("Choose a non-zero normal vector in R^4")
+            raise TypeError("plane is determined by a non-zero normal vector in R^4")
 
 
     def _construct_vertices_dict(self):
