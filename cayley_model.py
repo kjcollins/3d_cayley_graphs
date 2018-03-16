@@ -31,13 +31,13 @@ from time import time
 class ReflectionGroup3d(SageObject): # we might want to inherit from an object. Graphics?
     """docstring for """
     def __init__(self, group, point=(2,1,3), proj_plane=[0,0,0,1]):
-        self._verify_group(group):
+        self._verify_group(group)
         self.group = group
 
-        self._verify_point(group, point):
+        self._verify_point(group, point)
         self.init_point = vector(point) # decide about vector construction
 
-        self._verify_proj_plane(proj_plane):
+        self._verify_proj_plane(proj_plane)
         self.proj_plane = proj_plane
 
         self.reflections = self.group.reflections()
@@ -101,6 +101,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
             sage: W = SymmetricGroup(4)
             sage: ReflectionGroup3d(W)
+
             TypeError: Group should be defined as a WeylGroup or ReflectionGroup
 
         """
@@ -120,7 +121,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
     def _verify_point(self, group, point):
         """
         Perform error checking on point input
-	    If rank two reflection group, need 2d point
+        If rank two reflection group, need 2d point
         else need 3d point
 
         INPUT:
@@ -139,6 +140,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             sage: W = WeylGroup(["C",3])
             sage: my_point = (1,2)
             sage: ReflectionGroup3d(W, point=my_point)
+
             TypeError: Check dimension of point (does not match group rank)
 
         ::
@@ -146,11 +148,13 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             sage: my_point = (1,2,3)
             sage: ReflectionGroup3d(W, point=my_point)
 
+        TODO:
+        - Last example breaks because WeylGroups don't have cosets!! Debug
 
         """
         if group.rank() == len(point):
             return True
-    	elif group.rank() < len(point):
+        elif group.rank() < len(point):
             self.point = tuple(point[:group.rank()-1])
             raise UserWarning("Point was shortened to match group rank")
             return True
@@ -194,7 +198,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         In particular, values are themselves dictionaries, whose keys
         are group elements and whose values are the values of the
         corresponding properties.
-        
+
 
         OUTPUT:
 
@@ -206,14 +210,14 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
 
         EXAMPLES:
-        
+
             sage: W = WeylGroup(["A",2])
-            sage: G = ReflectionGroup3d(W, (3,2))
+            sage: G = ReflectionGroup3d(W, (3,2)) #TODO currently crashes
             sage: G.keys()
             ['color', 'label', 'visible', 'shape', 'radius', 'position']
             sage: G.vertices["position"]
             [(3, 2), (5, -2), (-3, 5), (-5, 3), (2, -5), (-2, -3)]
-        
+
         """
         for key, value in self.vertex_properties.items():
             if key=="position":
@@ -238,7 +242,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             cosets += self.group.cosets(subgroup)
             i=1
             while i<refl.order():
-                reflections.remove(refl^i)
+                reflections.remove(refl**i)
                 i+=1
 
         for key, value in self.edge_properties.items():
@@ -307,14 +311,14 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         EXAMPLES:
 
             sage: W = ReflectionGroup(['A',3]) #optional - gap3
-            sage: G = ReflectionGroup3d(W) 
+            sage: G = ReflectionGroup3d(W)
             sage: G.plot3d() #long time
             Graphics3d Object
 
         ::
 
             sage: W = ReflectionGroup(['A',3]) #optional - gap3
-            sage: G = ReflectionGroup3d(W) 
+            sage: G = ReflectionGroup3d(W)
             sage: G.plot3d() #long time
             Graphics3d Object
 
@@ -326,7 +330,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         TODO:
             Permit 4d real and 2d complex reflection group visualization
             using proj_plane or a Schlegel projection
-            
+
         """
         x = sage.plot.plot3d.base.Graphics3dGroup([])
 

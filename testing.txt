@@ -1,0 +1,13 @@
+Note to collaborators:
+
+To run tests, copy following line:
+
+sage -t --long --optional=gap3 --verbose cayley_model.py
+
+-t specifies to run file's tests
+--long runs any test flagged as long, 
+and --optional runs tests flagged as using gap3. 
+--verbose provides extra debugging output. 
+
+However, currently plot3d tests are breaking, and also possibly no
+other tests are running at all.
