@@ -1,7 +1,14 @@
 """
-Model building class for rigid 3d cayley graphs of reflection groups.
+Model building class for rigid 3d Cayley graphs of reflection groups.
 
-<Paragraph description>
+This class takes a reflection or Weyl group and creates a rigid 3d model of the
+Cayley graph. Vertex placement is determined by the group action on $\mathbb{R}^3$
+and by default all reflections are included as generators. Higher order reflections
+are represented as filled in polygons since the ultimate purpose of this package
+is to create files that can be sent to a 3d printer and made "throwable," i.e.
+physically printed. The class can handle real reflection groups of rank at most 3,
+and complex reflection groups or rank at most 2, which are realized first in real
+4d and then parallel projected into 3d for visualization and printing.
 
 EXAMPLES::
 
@@ -73,7 +80,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         INPUT:
 
-        - ''group'' -- a group
+        - ``group`` -- a group
 
         OUTPUT:
 
@@ -122,9 +129,9 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         INPUT:
 
-        - ''group'' -- a group
+        - ``group`` -- a group
 
-        - ''point'' -- a tuple of integers
+        - ``point`` -- a tuple of integers
 
         OUTPUT:
 
@@ -163,7 +170,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         INPUT:
 
-        - "plane" -- a tuple of integers
+        - ``plane`` -- a tuple of integers
 
         OUTPUT:
 
