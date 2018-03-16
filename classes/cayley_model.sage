@@ -43,9 +43,14 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         self.reflections = self.group.reflections()
 
-        self.vertex_properties = {"radius":1, "shape":"sphere", "label":None, "visible":True, "position":None, "color":"gray"}
+        self.vertex_properties = {"radius":1,
+                                  "shape":"sphere",
+                                  "label":None,
+                                  "visible":True,
+                                  "position":None,
+                                  "color":"gray"}
         self.vertices = {}
-        self._construct_vertices_dict() # design?
+        self._construct_vertices_dict()
 
         self.edge_properties = {"edge_thickness":.5,
                                 "color":"gray",
@@ -343,7 +348,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         return x
 
     def _create_edge(self, coset):
-        """
+        r"""
         Returns graphics edge object based on order of edge.
 
         INPUT:
@@ -357,9 +362,12 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         EXAMPLES:
 
         ::
-            sage:
-            sage:
-            sage:
+            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))
+            sage: edge = w._create_edge(w.edges["visible"].keys()[0])
+            sage: edge.jmol_repr(edge.default_render_params())
+
+            ['draw line_1 diameter 1 curve {-1.0 4.0 -6.0}  {-4.0 1.0 -3.0} ',
+             'color $line_1  [102,102,255]']
         ::
             sage:
             sage:
@@ -368,7 +376,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         """
         edge_points = [self.vertices["position"][coset_elt] for coset_elt in coset]
         if len(coset) == 2:
-            return line3d(edge_points) # parameters
+            return line3d(edge_points) # TODO parameters
         else: # length is greater than 2
             _object = sage.plot.plot3d.base.Graphics3dGroup([])
             edge_polyhedron = Polyhedron(vertices=edge_points)
@@ -385,7 +393,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
 
     def _create_edge_boundaries(self, edge_polyhedron):
-        """
+        r"""
         Return graphics object with boundaries to a higher order edge (order>2).
 
         INPUT:
@@ -399,13 +407,11 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         EXAMPLES:
 
         ::
-            sage:
-            sage:
-            sage:
-        ::
-            sage:
-            sage:
-            sage:
+            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))
+            sage: poly = Polyhedron(vertices = [[1, 2, 3], [0,1,0], [1,0,1]])
+            sage: edge_boundaries = w._create_edge_boundaries(poly)
+            sage: edge_boundaries.all
+            [Graphics3d Object]
 
         TODO:
 
@@ -440,6 +446,9 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             sage: poly_3d.all
             [Graphics3d Object, Graphics3d Object, Graphics3d Object, Graphics3d Object]
 
+        TODO:
+
+        - examples that better test what the graphics object contains
         """
         new_points = []
         verts = polytope_in_2d.vertices()
