@@ -104,7 +104,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
             sage: W = SymmetricGroup(4)
             sage: ReflectionGroup3d(W)
-            TypeError: "Group should be defined as a WeylGroup or ReflectionGroup"
+            TypeError: Group should be defined as a WeylGroup or ReflectionGroup
 
         """
         if group.parent() in [WeylGroup(["A",2]).parent(), ReflectionGroup((3,1,2)).parent(),ReflectionGroup(["A",2]).parent()]:
@@ -114,7 +114,6 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
                 if group.is_real():
                     return True
             else:
-                return False
                 raise TypeError("Group must be real with rank < 4, or complex with rank < 3")
         else:
             raise TypeError("Group should be defined as a WeylGroup or ReflectionGroup")
@@ -156,9 +155,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         """
         if group.rank() == len(point):
             return True
-    	else:
-           return False
-           raise TypeError("Check dimension of point (does not match group rank)")
+    	elif group.rank() < len(point):
+            self.point = tuple([:group.rank()-1] for n in point)
+            raise
+            raise TypeError("Check dimension of point (does not match group rank)")
 
 
 
@@ -208,18 +208,21 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
                 if tuple(plane) != (0,0,0,0):
                     return True
                 else:
-                    return False
                     raise TypeError("plane is determined by a non-zero normal vector in R^4")
             else:
-                return False
                 raise TypeError("plane is determined by a non-zero normal vector in R^4")
         else:
-            return False
             raise TypeError("plane is determined by a non-zero normal vector in R^4")
 
 
     def _construct_vertices_dict(self):
         """
+        Generates dictionary of vertex properties.
+
+        INPUT:
+
+        OUTPUT:
+
         """
         # keys are possible properties of vertices
         # values are a second dictionary with vertices mapped
