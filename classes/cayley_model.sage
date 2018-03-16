@@ -91,10 +91,16 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
             sage: W = ReflectionGroup((5,1,3))
             sage: ReflectionGroup3d(W)
-            Group must be real with rank < 4, or complex with rank < 3
+            TypeError: Group must be real with rank < 4, or complex with rank < 3
+
+        If the group is in the wrong format::
+
+            sage: W = SymmetricGroup(4)
+            sage: ReflectionGroup3d(W)
+            TypeError: "Group should be defined as a WeylGroup or ReflectionGroup"
 
         """
-        if group.parent() in [WeylGroup(["A",2]).parent(), ReflectionGroup((3,1,2)).parent()]:
+        if group.parent() in [WeylGroup(["A",2]).parent(), ReflectionGroup((3,1,2)).parent(),ReflectionGroup(["A",2]).parent()]:
             if group.rank() < 3:
                 return True
             elif group.rank() == 3:
@@ -102,7 +108,9 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
                     return True
             else:
                 return False
-                print "Group must be real with rank < 4, or complex with rank < 3"
+                raise TypeError("Group must be real with rank < 4, or complex with rank < 3")
+        else:
+            raise TypeError("Group should be defined as a WeylGroup or ReflectionGroup")
 
 
     def _verify_point(self, group, point):
@@ -128,7 +136,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             sage: W = WeylGroup(["C",3])
             sage: my_point = (1,2)
             sage: ReflectionGroup3d(W, point=my_point)
-            Check dimension of point (does not match group rank)
+            TypeError: Check dimension of point (does not match group rank)
 
         ::
             sage: W = W = WeylGroup(["C",3])
@@ -141,7 +149,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             return True
     	else:
 	        return False
-	        print "Check dimension of point (does not match group rank)"
+	        raise TypeError("Check dimension of point (does not match group rank)")
 
 
     def _verify_proj_plane(self, plane):
@@ -149,13 +157,22 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         Perform error checking on vector input
         Return boolean of whether vector is the normal to a hyperplane
         in 4d
+
+        INPUT:
+
+        - "plane" -- a tuple of integers
+
+        OUTPUT:
+
+        -
+
         """
         if len(plane) == 4:
             if tuple(plane) != (0,0,0,0):
                 return True
         else:
             return False
-            print "Choose a non-zero normal vector in R^4"
+            raise TypeError("Choose a non-zero normal vector in R^4")
 
 
     def _construct_vertices_dict(self):
