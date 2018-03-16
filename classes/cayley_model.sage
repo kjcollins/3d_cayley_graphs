@@ -161,8 +161,9 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         if group.rank() == len(point):
             return True
     	elif group.rank() < len(point):
-            self.point = tuple([:group.rank()-1] for n in point)
-            raise
+            self.point = tuple(point[:group.rank()-1])
+            return True
+        else:
             raise TypeError("Check dimension of point (does not match group rank)")
 
 
