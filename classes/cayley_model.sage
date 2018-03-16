@@ -1,4 +1,4 @@
-r"""
+"""
 Model building class for rigid 3d cayley graphs of reflection groups.
 
 <Paragraph description>
@@ -30,7 +30,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             # TODO find better error, and style of raising it
             raise TypeError("Group input does not specify reflection group.")
 
-        if self._verify_point(point):
+        if self._verify_point(group, point):
             self.init_point = vector(point) # decide about vector construction
         else:
             raise TypeError("Point not valid.")
@@ -113,10 +113,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             raise TypeError("Group should be defined as a WeylGroup or ReflectionGroup")
 
 
+
     def _verify_point(self, group, point):
         """
         Perform error checking on point input
-        Return boolean of whether point is appropriate for group
 	    If rank two reflection group, need 2d point
         else need 3d point
 
@@ -150,8 +150,9 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         if group.rank() == len(point):
             return True
     	else:
-	        return False
-	        raise TypeError("Check dimension of point (does not match group rank)")
+           return False
+           raise TypeError("Check dimension of point (does not match group rank)")
+
 
 
     def _verify_proj_plane(self, plane):
@@ -237,7 +238,6 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             subgroup = self.group.subgroup([refl])
             subgroups.append(subgroup)
             cosets += self.group.cosets(subgroup)
-            print cosets
             i=1
             while i<refl.order():
                 reflections.remove(refl^i)
@@ -250,7 +250,6 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
                 seed(time())
                 for subgp in subgroups:
                     acc += 1
-                    print acc, len(subgp), subgp
                     color = (randrange(0,255,1), randint(0,255), randint(0,255))
                     for e in self.group.cosets(subgp):
                         self.edges[key][tuple(e)] = color
@@ -299,8 +298,36 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
     def plot3d(self):
         """
-        Creates graphics3dGroup object that represents the reflection group,
-        according to chosen visualization parameters
+        Creates graphics3dGroup object that represents the reflection
+        group, according to chosen visualization parameters.
+
+        This method does not take inputs; changes to parameters should
+        be made using the setter methods.
+
+        (2018-03-15): Setter methods are not currently implemented.
+        ***** EXAMPLES HAVE NOT BEEN PROPERLY TESTED.
+
+        EXAMPLES:
+
+            sage: W = ReflectionGroup3d(ReflectionGroup(['A',3]))
+            sage: W.plot3d() #long time
+            Graphics3d Object
+
+        ::
+
+            sage: W = ReflectionGroup3d(ReflectionGroup(['A',3]))
+            sage: W.plot3d() #long time
+            Graphics3d Object
+
+
+        SEEALSO:
+            :func:`~sage.graphs.generic_graphs.GenericGraph.plot3d`
+
+
+        TODO:
+            Permit 4d real and 2d complex reflection group visualization
+            using proj_plane or a Schlegel projection
+
         """
         x = sage.plot.plot3d.base.Graphics3dGroup([])
 
@@ -317,15 +344,32 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
     def _create_edge(self, coset):
         """
-        Creates edge object. Handles logic of order of edge --> how edge
-        is constructed
-        returns graphics 3d object that is just one edge
+        Returns graphics edge object based on order of edge.
+
+        INPUT:
+
+        - ``coset`` -- a tuple defining the edge of a reflection group.
+
+        OUTPUT:
+
+        The edge of the reflection group as a graphics object.
+
+        EXAMPLES:
+
+        ::
+            sage:
+            sage:
+            sage:
+        ::
+            sage:
+            sage:
+            sage:
+
         """
         edge_points = [self.vertices["position"][coset_elt] for coset_elt in coset]
         if len(coset) == 2:
             return line3d(edge_points) # parameters
         else: # length is greater than 2
-
             _object = sage.plot.plot3d.base.Graphics3dGroup([])
             edge_polyhedron = Polyhedron(vertices=edge_points)
             if self.edges["fill"][coset]: #fix
@@ -337,13 +381,11 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             if not self.edges["fill"][coset] and not self.edges["boundaries"][coset]:
                 raise NotImplementedError("Visible edge has neither fill nor boundary!")
 
-            #.projection().render_solid_3d(color=Color(self.reflection_colors[r]))
-            return _object #parameters
+            return _object # TODO parameters
 
 
     def _create_edge_boundaries(self, edge_polyhedron):
-        # get faces of edge, and add to object
-        r"""
+        """
         Return graphics object with boundaries to a higher order edge (order>2).
 
         INPUT:
@@ -356,23 +398,59 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         EXAMPLES:
 
+        ::
+            sage:
+            sage:
+            sage:
+        ::
+            sage:
+            sage:
+            sage:
 
+        TODO:
+
+        - provide more visualization options for object.
         """
         _object = sage.plot.plot3d.base.Graphics3dGroup([])
         edge_face = edge_polyhedron.faces(2)[0]
         v_list = list(edge_face.vertices())
         v_list.append(edge_face.vertices()[0])
         _object += line3d(v_list, color="purple", radius=.1)
+
         return _object
 
-    def _thicken_polygon(polytope_in_2d, thickness):
+    def _thicken_polygon(self, polytope_in_2d, thickness):
         r"""
+        Return graphics object representing polyhedron in 3d with thickness.
+
+        INPUT:
+
+        - ``polytope_in_2d`` -- a :class:`Polyhedron`.
+
+        OUTPUT:
+
+        A graphics3dGroup object of the same polyhedron in 3d.
+
+        EXAMPLES:
+
+        Example of a polygon edge::
+            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))
+            sage: p = Polyhedron(vertices = [[1, 2, 3], [0,1,0], [1,0,1]])
+            sage: poly_3d = w._thicken_polygon(p, .01)
+            sage: poly_3d.all
+            [Graphics3d Object, Graphics3d Object, Graphics3d Object, Graphics3d Object]
+
         """
         new_points = []
-        normal_vector = (vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))
+        verts = polytope_in_2d.vertices()
+        normal_vector = (vector(verts[1]) - \
+                         vector(verts[0])).cross_product(vector(verts[2]) \
+                          - vector(verts[0]))
+
         for point in polytope_in_2d.vertices():
             point1 = vector(point) + .5*thickness*normal_vector
             point2 = vector(point) - .5*thickness*normal_vector
             new_points.append(point1)
             new_points.append(point2)
-        return Polyhedron(vertices = new_points).plot() #returns as a Graphics3d object
+
+        return Polyhedron(vertices = new_points).plot()
