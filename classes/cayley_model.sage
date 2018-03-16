@@ -24,7 +24,7 @@ AUTHORS:
 """
 
 from sage.structure.sage_object import SageObject
-from random import randint, randrange, seed
+from random import randint, seed
 from time import time
 
 
@@ -152,6 +152,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             return True
     	elif group.rank() < len(point):
             self.point = tuple(point[:group.rank()-1])
+            raise UserWarning("Point was shortened to match group rank")
             return True
         else:
             raise TypeError("Check dimension of point (does not match group rank)")
@@ -247,7 +248,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
                 seed(time())
                 for subgp in subgroups:
                     acc += 1
-                    color = (randrange(0,255,1), randint(0,255), randint(0,255))
+                    color = (randint(0,255), randint(0,255), randint(0,255))
                     for e in self.group.cosets(subgp):
                         self.edges[key][tuple(e)] = color
             else:
