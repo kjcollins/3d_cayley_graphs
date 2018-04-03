@@ -212,17 +212,25 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         EXAMPLES:
 
             sage: W = WeylGroup(["A",2])
-            sage: G = ReflectionGroup3d(W, (3,2)) #TODO currently crashes
+            sage: G = ReflectionGroup3d(W, (3,2))
             sage: G.keys()
             ['color', 'label', 'visible', 'shape', 'radius', 'position']
             sage: G.vertices["position"]
             [(3, 2), (5, -2), (-3, 5), (-5, 3), (2, -5), (-2, -3)]
 
         """
+        def pad_position(v, point):
+            pos = v.matrix()*point
+            # tup_pos = tuple(v.matrix()*point)
+            if len(pos) < 3:
+                return vector(tuple(pos)+((0,)*(3-len(pos))))
+            else:
+                return pos
+
         for key, value in self.vertex_properties.items():
             if key=="position":
                 self.vertices[key] = \
-                {v:v.matrix()*self.init_point for v in self.group.list()}
+                {v:pad_position(v, self.init_point) for v in self.group.list()}
                 # style?
             else:
                 self.vertices[key] = {v:value for v in self.group.list()}
@@ -341,8 +349,8 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         for vertex, visible in self.vertices['visible'].items():
             if visible:
                 x += point3d(self.vertices["position"][vertex],
-                color = self.vertices["color"][vertex],
-                size = self.vertices["radius"][vertex])
+                                color = self.vertices["color"][vertex],
+                                size = self.vertices["radius"][vertex])
         return x
 
     def _create_edge(self, coset):
