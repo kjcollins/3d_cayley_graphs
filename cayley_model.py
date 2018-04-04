@@ -21,6 +21,14 @@ AUTHORS:
 - Eric Stucky (2018-03-15): initial version
 - Kaisa Taipale (2018-03-15): initial version
 
+
+TODO:
+
+- Note for developers (and anyone else confused by Sage doc testing):
+sage -t --long --optional=mpir,python2,sage,gap3 --debug cayley_model.py
+is the line that tests everything in this file. Remove the "--debug" option
+if you don't want to try to interactively debug errors.
+
 """
 
 from sage.structure.sage_object import SageObject
@@ -90,18 +98,22 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
             sage: W = ReflectionGroup(["C",3]) #long time
             sage: ReflectionGroup3d(W) #long time
+            <class '__main__.ReflectionGroup3d'>
 
         If the group's rank is too big::
 
             sage: W = ReflectionGroup((5,1,3)) #long time
             sage: ReflectionGroup3d(W) #long time
+            Traceback (most recent call last):
+            ...
             TypeError: Group must be real with rank < 4, or complex with rank < 3
 
         If the group is in the wrong format::
 
             sage: W = SymmetricGroup(4) #long time
             sage: ReflectionGroup3d(W) #long time
-
+            Traceback (most recent call last):
+            ...
             TypeError: Group should be defined as a ReflectionGroup
 
         """
@@ -111,6 +123,8 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             elif group.rank() == 3:
                 if group.is_real():
                     return True
+                else:
+                    raise TypeError("Group must be real with rank < 4, or complex with rank < 3")
             else:
                 raise TypeError("Group must be real with rank < 4, or complex with rank < 3")
         else:
@@ -137,17 +151,18 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         EXAMPLES:
 
         ::
-            sage: W = ReflectionGroup(["C",3])
+            sage: W = ReflectionGroup(["C",3]) #long time
             sage: my_point = (1,2)
-            sage: ReflectionGroup3d(W, point=my_point)
-
+            sage: ReflectionGroup3d(W, my_point) #long time
+            Traceback (most recent call last):
+            ...
             TypeError: Check dimension of point (does not match group rank)
 
         ::
-            sage: W = ReflectionGroup(["C",3])
-            sage: my_point = (1,2,3)
-            sage: ReflectionGroup3d(W, point=my_point)
-
+            sage: W = ReflectionGroup(["C",3]) #long time
+            sage: my_point_1 = (1,2,3)
+            sage: ReflectionGroup3d(W, my_point_1) #long time
+            <class '__main__.ReflectionGroup3d'>
         """
         if group.rank() == len(point):
             return True
@@ -210,10 +225,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
             sage: W = ReflectionGroup(["A",2])
             sage: G = ReflectionGroup3d(W, (3,2))
-            sage: G.keys()
+            sage: G.vertex_properties.keys()
             ['color', 'label', 'visible', 'shape', 'radius', 'position']
-            sage: G.vertices["position"]
-            [(3, 2), (5, -2), (-3, 5), (-5, 3), (2, -5), (-2, -3)]
+            sage: G.vertices["position"].values()
+            [(-5, 3, 0), (5, -2, 0), (-3, 5, 0), (3, 2, 0), (2, -5, 0), (-2, -3, 0)]
 
         """
         def pad_position(v, point):
@@ -368,9 +383,9 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))
             sage: edge = w._create_edge(w.edges["visible"].keys()[0])
             sage: edge.jmol_repr(edge.default_render_params())
-
             ['draw line_1 diameter 1 curve {-1.0 4.0 -6.0}  {-4.0 1.0 -3.0} ',
              'color $line_1  [102,102,255]']
+
         ::
             sage:
             sage:
@@ -428,7 +443,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         return _object
 
-    def _thicken_polygon(polytope_in_2d, thickness):
+    def _thicken_polygon(self, polytope_in_2d, thickness):
         """
         Return graphics object representing polyhedron in 3d with thickness.
 
