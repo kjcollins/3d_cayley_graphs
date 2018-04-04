@@ -145,7 +145,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         OUTPUT:
 
-        Interger
+        Integer
 
         EXAMPLES:
 
@@ -272,8 +272,8 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             elif self.real_dimension == 3:
                 return pos
             else:
-                pos4d = vector((pos[0].real_part(), pos[0].imag_part(), pos[1].real_part(), pos[1].imag_part()))
-                proj_pos4d = pos4d - proj_plane.normalized().dot_product(pos4d)
+                pos4d = vector((CC(pos[0]).real_part(), CC(pos[0]).imag_part(), CC(pos[1]).real_part(), CC(pos[1]).imag_part()))
+                proj_pos4d = pos4d - (proj_plane).normalized().dot_product(pos4d)*pos4d.normalized()
                 return proj_pos4d[0:2]
 
         for key, value in self.vertex_properties.items():
