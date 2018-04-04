@@ -88,19 +88,19 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         ::
 
-            sage: W = WeylGroup(["C",3])
-            sage: ReflectionGroup3d(W)
+            sage: W = WeylGroup(["C",3]) #long time
+            sage: ReflectionGroup3d(W) #long time
 
         If the group's rank is too big::
 
-            sage: W = ReflectionGroup((5,1,3))
-            sage: ReflectionGroup3d(W)
+            sage: W = ReflectionGroup((5,1,3)) #long time
+            sage: ReflectionGroup3d(W) #long time
             TypeError: Group must be real with rank < 4, or complex with rank < 3
 
         If the group is in the wrong format::
 
-            sage: W = SymmetricGroup(4)
-            sage: ReflectionGroup3d(W)
+            sage: W = SymmetricGroup(4) #long time
+            sage: ReflectionGroup3d(W) #long time
 
             TypeError: Group should be defined as a WeylGroup or ReflectionGroup
 
@@ -319,14 +319,14 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         EXAMPLES:
 
             sage: W = ReflectionGroup(['A',3]) #optional - gap3
-            sage: G = ReflectionGroup3d(W)
+            sage: G = ReflectionGroup3d(W) #long time
             sage: G.plot3d() #long time
             Graphics3d Object
 
         ::
 
             sage: W = ReflectionGroup(['A',3]) #optional - gap3
-            sage: G = ReflectionGroup3d(W)
+            sage: G = ReflectionGroup3d(W) #long time
             sage: G.plot3d() #long time
             Graphics3d Object
 
