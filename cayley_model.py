@@ -34,6 +34,7 @@ if you don't want to try to interactively debug errors.
 from sage.structure.sage_object import SageObject
 from random import randint, seed
 from time import time
+import warnings
 
 
 class ReflectionGroup3d(SageObject): # we might want to inherit from an object. Graphics?
@@ -45,7 +46,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         self._real_dimension(group)
         self.real_dimension = 3 # place filler until real dimension computed
 
-        self._verify_point(group, point)
+        point = self._verify_point(group, point)
         self.init_point = vector(point) # decide about vector construction
 
         self._verify_proj_plane(proj_plane)
@@ -152,18 +153,19 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         ::
             sage: W = ReflectionGroup(["C",3])
             sage: A = ReflectionGroup3d(W)
-            sage: A.real_dimension()
+            sage: A.real_dimension
             3
 
         ::
             sage: W = ReflectionGroup((3,1,2))
             sage: A = ReflectionGroup3d(W)
-            sage: A.real_dimension()
+            sage: A.real_dimension
             4
         """
         if group.is_real() == True:
             self.real_dimension = group.rank()
-        else self.real_dimension = 2*group.rank()
+        else:
+            self.real_dimension = 2*group.rank()
 
     def _verify_point(self, group, point):
         """
@@ -198,11 +200,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             <class '__main__.ReflectionGroup3d'>
         """
         if group.rank() == len(point):
-            return True
+            return point
         elif group.rank() < len(point):
-            self.point = tuple(point[:group.rank()-1])
-            raise UserWarning("Point was shortened to match group rank")
-            return True
+            warnings.warn("Point was shortened to match group rank")
+            return tuple(point[:group.rank()-1])
         else:
             raise TypeError("Check dimension of point (does not match group rank)")
 
@@ -273,7 +274,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
                 return pos
             else:
                 pos4d = vector((pos[0].real_part(), pos[0].imag_part(), pos[1].real_part(), pos[1].imag_part()))
-                proj_pos4d = pos4d - proj_plane.normalized().dot_product(pos4d)
+                proj_pos4d = pos4d - vector(self.proj_plane).normalized().dot_product(pos4d)
                 return proj_pos4d[0:2]
 
         for key, value in self.vertex_properties.items():
