@@ -88,7 +88,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         ::
 
-            sage: W = WeylGroup(["C",3])
+            sage: W = ReflectionGroup(["C",3])
             sage: ReflectionGroup3d(W)
 
         If the group's rank is too big::
@@ -102,10 +102,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             sage: W = SymmetricGroup(4)
             sage: ReflectionGroup3d(W)
 
-            TypeError: Group should be defined as a WeylGroup or ReflectionGroup
+            TypeError: Group should be defined as a ReflectionGroup
 
         """
-        if group.parent() in [WeylGroup(["A",2]).parent(), ReflectionGroup((3,1,2)).parent(),ReflectionGroup(["A",2]).parent()]:
+        if group.parent() in [ReflectionGroup((3,1,2)).parent(),ReflectionGroup(["A",2]).parent()]:
             if group.rank() < 3:
                 return True
             elif group.rank() == 3:
@@ -114,7 +114,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             else:
                 raise TypeError("Group must be real with rank < 4, or complex with rank < 3")
         else:
-            raise TypeError("Group should be defined as a WeylGroup or ReflectionGroup")
+            raise TypeError("Group should be defined as a ReflectionGroup")
 
 
 
@@ -137,19 +137,16 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         EXAMPLES:
 
         ::
-            sage: W = WeylGroup(["C",3])
+            sage: W = ReflectionGroup(["C",3])
             sage: my_point = (1,2)
             sage: ReflectionGroup3d(W, point=my_point)
 
             TypeError: Check dimension of point (does not match group rank)
 
         ::
-            sage: W = WeylGroup(["C",3])
+            sage: W = ReflectionGroup(["C",3])
             sage: my_point = (1,2,3)
             sage: ReflectionGroup3d(W, point=my_point)
-
-        TODO:
-        - Last example breaks because WeylGroups don't have cosets!! Debug
 
         """
         if group.rank() == len(point):
@@ -211,7 +208,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         EXAMPLES:
 
-            sage: W = WeylGroup(["A",2])
+            sage: W = ReflectionGroup(["A",2])
             sage: G = ReflectionGroup3d(W, (3,2))
             sage: G.keys()
             ['color', 'label', 'visible', 'shape', 'radius', 'position']
