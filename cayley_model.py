@@ -44,7 +44,6 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         self.group = group
 
         self._real_dimension(group)
-        self.real_dimension = 3 # place filler until real dimension computed
 
         point = self._verify_point(group, point)
         self.init_point = vector(point) # decide about vector construction
@@ -63,12 +62,12 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         self.vertices = {}
         self._construct_vertices_dict()
 
-        self.edge_properties = {"edge_thickness":.5,
+        self.edge_properties = {"edge_thickness":.01,
                                 "color":"gray",
                                 "fill":True,
-                                "fill_size": .5,
+                                "fill_size": .05,
                                 "boundaries": True,
-                                "boundary_thickness":.5,
+                                "boundary_thickness":.01,
                                 "visible":True}
         # if x param exists: set it
         # else: add default
@@ -159,6 +158,9 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         ::
             sage: W = ReflectionGroup((3,1,2))
             sage: A = ReflectionGroup3d(W)
+            doctest:warning
+            ...
+            UserWarning: Point was shortened to match group rank
             sage: A.real_dimension
             4
         """
@@ -203,7 +205,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             return point
         elif group.rank() < len(point):
             warnings.warn("Point was shortened to match group rank")
-            return tuple(point[:group.rank()-1])
+            return tuple(point[:group.rank()])
         else:
             raise TypeError("Check dimension of point (does not match group rank)")
 
@@ -275,7 +277,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             else:
                 pos4d = vector((CC(pos[0]).real_part(), CC(pos[0]).imag_part(), CC(pos[1]).real_part(), CC(pos[1]).imag_part()))
                 proj_pos4d = pos4d - vector(self.proj_plane).normalized().dot_product(pos4d)*pos4d.normalized()
-                return proj_pos4d[0:2]
+                return proj_pos4d[0:3]
 
         for key, value in self.vertex_properties.items():
             if key=="position":
@@ -440,10 +442,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             _object = sage.plot.plot3d.base.Graphics3dGroup([])
             edge_polyhedron = Polyhedron(vertices=edge_points)
             if self.edges["fill"][coset]: #fix
-                _object += _thicken_polygon(edge_polyhedron,
-                            self.edges["thickness"][coset])
+                _object += self._thicken_polygon(edge_polyhedron,
+                            self.edges["boundary_thickness"][coset])
             if self.edges["boundaries"][coset]: #fix
-                _object += _create_edge_boundaries(edge_polyhedron)
+                _object += self._create_edge_boundaries(edge_polyhedron)
 
             if not self.edges["fill"][coset] and not self.edges["boundaries"][coset]:
                 raise NotImplementedError("Visible edge has neither fill nor boundary!")
