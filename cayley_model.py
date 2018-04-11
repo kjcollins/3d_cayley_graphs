@@ -358,11 +358,6 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         return outside_edge_dictionary
 
 
-    def vertex_color(self, color=None):
-        if color == None:
-            return self.vertex_properties["color"]
-        self.vertex_properties["color"] = color
-        self.vertices["color"] = {v:color for v in self.group.list()}
 
 
     def set_edge_thickness(self, new_edge_thickness):
@@ -381,7 +376,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         for edge in self.edges:
             self.edges[edge_thickness] = new_edge_thickness
 
-    def vertex_color(self, c=None):
+    def vertex_color(self, color=None):
         """
         Set the vertex color.
 
@@ -396,13 +391,18 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         TODO: this example.
         """
-        if c is None:
+
+        if color is None:
             try:
                 return self.vertex_properties["color"]
-            except AttributeError:
-                self.vertex_properties["color"]="gray"
+            except KeyError:
+                self.vertex_properties["color"] = "gray"
+                self.vertices["color"] = {v:color for v in self.group.list()}
                 return self.vertex_properties["color"]
-        self.vertex_properties["color"]=rgbcolor(c)
+        # self.vertex_properties["color"]=rgbcolor(c)
+        self.vertex_properties["color"] = color
+        for v in self.group.list():
+            self.vertices["color"][v] = color
 
 
 
