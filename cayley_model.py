@@ -376,15 +376,15 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         for edge in self.edges:
             self.edges[edge_thickness] = new_edge_thickness
 
-    def vertex_color(self, color=None):
+    def vertex_colors(self, color=None):
         """
-        Set the vertex color.
+        Set the vertex color for all vertices.
 
-        If called with no input, return the current vertex color setting.
+        If called with no input, return the current model vertex color setting.
 
         INPUT:
 
-        - ``c`` - an RGB color 3-tuple, where each tuple entry
+        - ``color`` - an RGB color 3-tuple, where each tuple entry
             is a float between 0 and 1.
 
         EXAMPLES: Change all the vertex colors to red.
