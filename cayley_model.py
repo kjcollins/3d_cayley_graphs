@@ -69,6 +69,8 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
                                 "boundaries": True,
                                 "boundary_thickness":.01,
                                 "visible":True}
+        # IDEA: only include "boundaries" if the group chosen has edges that can use them?
+
         # if x param exists: set it
         # else: add default
         self.edges = {}
@@ -394,7 +396,8 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         if edge_thickness == None:
             return self.edge_properties["edge_thickness"]
         self.edge_properties["edge_thickness"] = edge_thickness
-        self.edges["edge_thickness"] = {tuple(e):edge_thickness for e in cosets}
+        for edge in self.edges["edge_thickness"].keys():
+            self.edges["edge_thickness"][edge] = edge_thickness
 
     def edge_colors(self):
         return self.edges["color"]
@@ -420,7 +423,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             return self.edge_properties["color"]
         if "reflections" in kwds:
             for r in kwds["reflections"]:
-                for e in self.edges(r): #make self.edges(r) return the list of edges for reflection r
+                for e in self.list_edges(r): #make self.edges(r) return the list of edges for reflection r
                     self.edges["color"][e] = color
         if "edges" in kwds:
             for e in kwds["edges"]:
@@ -538,7 +541,8 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         """
         edge_points = [self.vertices["position"][coset_elt] for coset_elt in coset]
         if len(coset) == 2:
-            return line3d(edge_points) # TODO parameters
+            # TODO parameters. KEEP INCLUDING MORE HERE
+            return line3d(edge_points, color=self.edges["color"][coset], radius=self.edges["edge_thickness"][coset])
         else: # length is greater than 2
             _object = sage.plot.plot3d.base.Graphics3dGroup([])
             edge_polyhedron = Polyhedron(vertices=edge_points)
