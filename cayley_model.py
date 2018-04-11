@@ -53,7 +53,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         self.reflections = self.group.reflections()
 
-        self.vertex_properties = {"radius":1,
+        self.vertex_properties = {"radius":10,
                                   "shape":"sphere",
                                   "label":None,
                                   "visible":True,
@@ -287,7 +287,6 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             else:
                 self.vertices[key] = {v:value for v in self.group.list()}
 
-
     def _construct_edges_dict(self):
         """
         """
@@ -357,6 +356,14 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
                             outside_edge_dictionary[tuple(self.W.cosets(S)[j])] = "internal edge"
 
         return outside_edge_dictionary
+
+
+    def vertex_color(self, color=None):
+        if color == None:
+            return self.vertex_properties["color"]
+        self.vertex_properties["color"] = color
+        self.vertices["color"] = {v:color for v in self.group.list()}
+
 
     def set_edge_thickness(self, new_edge_thickness):
         """
@@ -553,7 +560,11 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         - examples that better test what the graphics object contains
         """
         new_points = []
-        normal_vector = vector(CC,((vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))).normalized())
+        long_normal_vector = vector(CC,((vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))).normalized())
+        rounded_vector = []
+        for entry in list(long_normal_vector):
+            rounded_vector.append(round(entry,3))
+        normal_vector = vector(rounded_vector)
 
         for point in polytope_in_2d.vertices():
             point1 = vector(point) + .5*thickness*normal_vector
