@@ -294,11 +294,15 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         reflections = self.group.reflections().list()
         subgroups = []
+        self.reflection_edges = {}
         while reflections: # is nonempty
             refl = reflections[0]
             subgroup = self.group.subgroup([refl])
             subgroups.append(subgroup)
-            cosets += self.group.cosets(subgroup)
+            coset = self.group.cosets(subgroup)
+            self.reflection_edges[refl] = [tuple(e) for e in coset]
+
+            cosets += coset
             i=1
             while i<refl.order():
                 reflections.remove(refl**i)
@@ -358,6 +362,16 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         return outside_edge_dictionary
 
 
+    def list_edges(self, r=None):
+        """
+        """
+        if r == None:
+            return self.edges["visible"].keys()
+        # if r is in self.group.reflections():
+        try:
+            return self.reflection_edges[r]
+        except KeyError:
+            raise KeyError("%s is not a reflection of this group."%str(r))
 
 
     def edge_thickness(self, edge_thickness=None):
@@ -513,7 +527,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))
             sage: edge = w._create_edge(w.edges["visible"].keys()[0])
             sage: edge.jmol_repr(edge.default_render_params())
-            ['draw line_1 diameter 1 curve {-1.0 4.0 -6.0}  {-4.0 1.0 -3.0} ',
+            ['draw line_1 diameter 1 curve {-10.0 40.0 -60.0}  {-40.0 10.0 -30.0} ',
              'color $line_1  [102,102,255]']
 
         ::
