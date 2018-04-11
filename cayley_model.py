@@ -529,7 +529,11 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         - examples that better test what the graphics object contains
         """
         new_points = []
-        normal_vector = vector(CC,((vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))).normalized())
+        long_normal_vector = vector(CC,((vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))).normalized())
+        rounded_vector = []
+        for entry in list(long_normal_vector):
+            rounded_vector.append(round(entry,3))
+        normal_vector = vector(rounded_vector)
 
         for point in polytope_in_2d.vertices():
             point1 = vector(point) + .5*thickness*normal_vector
