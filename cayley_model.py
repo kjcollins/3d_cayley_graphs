@@ -409,7 +409,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
                 for e in self.edges(r): #make self.edges(r) return the list of edges for reflection r
                     self.edges["color"][e] = color
         if "edges" in kwds:
-            for e in kwds[]"edges"]:
+            for e in kwds["edges"]:
                 self.edges["color"][e] = color
         if len(kwds) == 0:
             self.edge_properties["color"] = color
