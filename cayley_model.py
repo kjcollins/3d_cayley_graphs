@@ -365,21 +365,49 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         self.vertices["color"] = {v:color for v in self.group.list()}
 
 
-    def set_edge_thickness(self, new_edge_thickness):
+    def edge_thickness(self, edge_thickness=None):
         """
-        Changes the thickness of an edge.
+        Change the thickness of all edges.
+
+        If called with no input, returns current edge thickness
 
         INPUTS:
 
         - ``positive real number`` -- the desired thickness
 
-        OUTPUTS:
+        EXAMPLS:
 
-        TODO: finish this setter
+        ::
+
+        ::
 
         """
-        for edge in self.edges:
-            self.edges[edge_thickness] = new_edge_thickness
+        if edge_thickness == None:
+            return self.edge_properties["edge_thickness"]
+        self.edge_properties["edge_thickness"] = edge_thickness
+        self.edges["edge_thickness"] = {tuple(e):edge_thickness for e in cosets}
+
+    def edge_color(self, color=None, reflections=None, edges=None):
+        """
+        Change the color of all edges.
+
+        If called with no input, returns current color
+
+        INPUTS:
+
+        - ``color`` -- the desired color of all edges
+
+        EXAMPLS:
+
+        ::
+
+        ::
+
+        """
+        if color == None:
+            return self.edge_properties["color"]
+        self.edge_properties["color"] = color
+        self.edges["color"] = {tuple(e):color for e in cosets}
 
 
     def plot3d(self):
