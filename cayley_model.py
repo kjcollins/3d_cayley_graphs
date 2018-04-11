@@ -358,11 +358,6 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         return outside_edge_dictionary
 
 
-    def vertex_color(self, color=None):
-        if color == None:
-            return self.vertex_properties["color"]
-        self.vertex_properties["color"] = color
-        self.vertices["color"] = {v:color for v in self.group.list()}
 
 
     def edge_thickness(self, edge_thickness=None):
@@ -408,6 +403,35 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             return self.edge_properties["color"]
         self.edge_properties["color"] = color
         self.edges["color"] = {tuple(e):color for e in cosets}
+
+    def vertex_color(self, color=None):
+        """
+        Set the vertex color.
+
+        If called with no input, return the current vertex color setting.
+
+        INPUT:
+
+        - ``c`` - an RGB color 3-tuple, where each tuple entry
+            is a float between 0 and 1.
+
+        EXAMPLES: Change all the vertex colors to red.
+
+        TODO: this example.
+        """
+
+        if color is None:
+            try:
+                return self.vertex_properties["color"]
+            except KeyError:
+                self.vertex_properties["color"] = "gray"
+                self.vertices["color"] = {v:color for v in self.group.list()}
+                return self.vertex_properties["color"]
+        # self.vertex_properties["color"]=rgbcolor(c)
+        self.vertex_properties["color"] = color
+        for v in self.group.list():
+            self.vertices["color"][v] = color
+
 
 
     def plot3d(self):
