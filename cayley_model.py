@@ -1,7 +1,7 @@
 """
 Model building class for rigid 3d Cayley graphs of reflection groups.
 
-This class takes a reflection or Weyl group and creates a rigid 3d model of the
+This class takes a reflection group and creates a rigid 3d model of the
 Cayley graph. Vertex placement is determined by the group action on $\mathbb{R}^3$
 and by default all reflections are included as generators. Higher order reflections
 are represented as filled in polygons since the ultimate purpose of this package
@@ -39,7 +39,7 @@ import warnings
 
 class ReflectionGroup3d(SageObject): # we might want to inherit from an object. Graphics?
     """docstring for """
-    def __init__(self, group, point=(2,1,3), proj_plane=[0,0,0,1]):
+    def __init__(self, group, point=(20,10,30), proj_plane=[0,0,0,1]):
         self._verify_group(group)
         self.group = group
 
@@ -358,6 +358,23 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         return outside_edge_dictionary
 
+    def set_edge_thickness(self, new_edge_thickness):
+        """
+        Changes the thickness of an edge.
+
+        INPUTS:
+
+        - ``positive real number`` -- the desired thickness
+
+        OUTPUTS:
+
+        TODO: finish this setter
+
+        """
+        for edge in self.edges:
+            self.edges[edge_thickness] = new_edge_thickness
+
+
     def plot3d(self):
         """
         Create a graphics3dGroup object that represents the reflection
@@ -512,7 +529,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         - examples that better test what the graphics object contains
         """
         new_points = []
-        normal_vector = (vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))
+        normal_vector = vector(CC,((vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))).normalized())
 
         for point in polytope_in_2d.vertices():
             point1 = vector(point) + .5*thickness*normal_vector
