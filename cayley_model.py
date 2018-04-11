@@ -382,7 +382,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         self.edge_properties["edge_thickness"] = edge_thickness
         self.edges["edge_thickness"] = {tuple(e):edge_thickness for e in cosets}
 
-    def edge_color(self, color=None, reflections=None, edges=None):
+    def edge_colors(self):
+        return self.edges["color"]
+
+    def edge_color(self, color=None, **kwds):
         """
         Change the color of all edges.
 
@@ -401,8 +404,16 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         """
         if color == None:
             return self.edge_properties["color"]
-        self.edge_properties["color"] = color
-        self.edges["color"] = {tuple(e):color for e in cosets}
+        if "reflections" in kwds:
+            for r in kwds["reflections"]:
+                for e in self.edges(r): #make self.edges(r) return the list of edges for reflection r
+                    self.edges["color"][e] = color
+        if "edges" in kwds:
+            for e in kwds[]"edges"]:
+                self.edges["color"][e] = color
+        if len(kwds) == 0:
+            self.edge_properties["color"] = color
+            self.edges["color"] = {tuple(e):color for e in cosets}
 
     def vertex_color(self, color=None):
         """
