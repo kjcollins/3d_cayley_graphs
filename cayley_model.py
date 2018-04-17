@@ -291,6 +291,34 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
     def _construct_edges_dict(self):
         """
+        Constructs the dictionary of edge properties.
+
+        The dictionary maps properties edges can have, to dictionaries of
+        the value of that property for each edge in the model. These are
+        created based on the object defaults, and can be changed with
+        set methods.
+
+        EXAMPLES:
+
+            sage: W = ReflectionGroup(["A",2])
+            sage: G = ReflectionGroup3d(W, (3,2))
+            sage: G.edge_properties.keys()
+            ['boundary_thickness', 'color', 'boundaries', 'visible',
+            'edge_thickness', 'fill_size', 'fill']
+            sage: G.edges["visible"].keys()
+            [((1,2,6)(3,4,5), (1,5)(2,4)(3,6)),
+             ((), (1,5)(2,4)(3,6)),
+             ((), (1,3)(2,5)(4,6)),
+             ((1,3)(2,5)(4,6), (1,6,2)(3,5,4)),
+             ((1,2,6)(3,4,5), (1,3)(2,5)(4,6)),
+             ((1,5)(2,4)(3,6), (1,6,2)(3,5,4)),
+             ((1,2,6)(3,4,5), (1,4)(2,3)(5,6)),
+             ((1,4)(2,3)(5,6), (1,6,2)(3,5,4)),
+             ((), (1,4)(2,3)(5,6))]
+
+        TODO:
+            - The properties for the edges should be able to be changed by user
+              inputs in constructing the models, as well.
         """
         cosets = []
 
@@ -527,9 +555,9 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         EXAMPLES:
 
         ::
-            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))
+            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))#, point=(2,1,3))
             sage: edge = w._create_edge(w.edges["visible"].keys()[0])
-            sage: edge.jmol_repr(edge.default_render_params())
+            sage: print(edge.jmol_repr(edge.default_render_params())) # TODO: this color is generated randomly. Need to test better
             ['draw line_1 diameter 1 curve {-10.0 40.0 -60.0}  {-40.0 10.0 -30.0} ',
              'color $line_1  [102,102,255]']
 
