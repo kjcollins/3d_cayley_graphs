@@ -432,7 +432,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             self.edge_properties["color"] = color
             self.edges["color"] = {tuple(e):color for e in cosets}
 
-    def vertex_colors(self, color=None):
+    def vertex_colors(self):
+        return self.vertices["color"]
+
+    def vertex_color(self, color=None, **kwds):
         """
         Set the vertex color for all vertices.
 
@@ -442,8 +445,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         - ``color`` - an RGB color 3-tuple, where each tuple entry
             is a float between 0 and 1.
+        - ``vertices`` - a list of vertices to change to the color.
 
-        EXAMPLES: Change all the vertex colors to red.
+        EXAMPLES: Change all the vertex colors to red. Change some to red.
+
 
         TODO: this example.
         """
@@ -456,9 +461,13 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
                 self.vertices["color"] = {v:color for v in self.group.list()}
                 return self.vertex_properties["color"]
         # self.vertex_properties["color"]=rgbcolor(c)
-        self.vertex_properties["color"] = color
-        for v in self.group.list():
-            self.vertices["color"][v] = color
+        if "vertices" in kwds:
+            for v in kwds["vertices"]:
+                self.vertices["color"][v] = color
+        if len(kwds) == 0:
+            self.vertex_properties["color"] = color
+            for v in self.group.list():
+                self.vertices["color"][v] = color
 
 
 
