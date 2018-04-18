@@ -392,6 +392,61 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         self.outside_edges = outside_edge_dictionary
 
+    def one_faces(self, **kwds):
+        """
+        Allows user to change properties of edges that are a one-face of the convex hull.
+
+        If called without arguements, returns a list of such edges.
+
+        INPUTS:
+
+        EXAMPLES:
+        """
+        one_faces = [i for i,j in G.outside_edges.items() if j == "1-face"]
+        if len(kwds) == 0:
+            return one_faces
+        if "color" in kwds:
+            self.edge_color(color=kwds["color"],edges=one_faces)
+        if "thickness" in kwds:
+            self.edge_thickness(edge_thickness=kwds["thickness"], edges=one_faces)
+
+    def outside_edges(self, **kwds):
+        """
+        Allows user to change properties of edges that are on the exterior of the convex hull.
+
+        If called without arguements, returns a list of such edges.
+
+        INPUTS:
+
+        EXAMPLES:
+        """
+        one_faces = [i for i,j in G.outside_edges.items() if j == "1-face"]
+        exterior_edges = [i for i,j in G.outside_edges.items() if j == "external edge"]
+        outside_edges = union(one_faces, exterior_edges)
+        if len(kwds) == 0:
+            return outside_edges
+        if "color" in kwds:
+            self.edge_color(color=kwds["color"],edges=outside_edges)
+        if "thickness" in kwds:
+            self.edge_thickness(edge_thickness=kwds["thickness"], edges=outside_edges)
+
+    def inside_edges(self, **kwds):
+        """
+        Allows user to change properties of edges that are on the interior of the convex hull.
+
+        If called without arguements, returns a list of such edges
+
+        INPUTS:
+
+        EXAMPLES:
+        """
+        inside_edges = [i for i,j in G.outside_edges.items() if j == "internal edge"]
+        if len(kwds) == 0:
+            return inside_edges
+        if "color" in kwds:
+            self.edge_color(color=kwds["color"],edges=inside_edges)
+        if "thickness" in kwds:
+            self.edge_thickness(edge_thickness=kwds["thickness"], edges=inside_edges)
 
     def list_edges(self, r=None):
         """
@@ -414,8 +469,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         except KeyError:
             raise KeyError("%s is not a reflection of this group."%str(r))
 
+    def edge_thicnkesses(self):
+        return self.edges["edge_thickness"]
 
-    def edge_thickness(self, edge_thickness=None):
+    def edge_thickness(self, edge_thickness=None, **kwds):
         """
         Change the thickness of all edges.
 
@@ -434,9 +491,16 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         """
         if edge_thickness == None:
             return self.edge_properties["edge_thickness"]
-        self.edge_properties["edge_thickness"] = edge_thickness
-        for edge in self.edges["edge_thickness"].keys():
-            self.edges["edge_thickness"][edge] = edge_thickness
+        if "reflections" in kwds:
+            for r in kwds["reflections"]:
+                for e in self.list_edges(r):
+                    self.edges["edge_thickness"][e] = edge_thickness
+        if "edges" in kwds:
+            for e in kwds["edges"]:
+                self.edges["edge_thickness"][e] = edge_thickness
+#        self.edge_properties["edge_thickness"] = edge_thickness
+#        for edge in self.edges["edge_thickness"].keys():
+#            self.edges["edge_thickness"][edge] = edge_thickness
 
 
     def edge_colors(self):
