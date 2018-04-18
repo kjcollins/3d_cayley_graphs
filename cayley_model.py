@@ -153,13 +153,13 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         ::
             sage: W = ReflectionGroup(["C",3])
-            sage: A = ReflectionGroup3d(W)
+            sage: A = ReflectionGroup3d(W) # long time
             sage: A.real_dimension
             3
 
         ::
             sage: W = ReflectionGroup((3,1,2))
-            sage: A = ReflectionGroup3d(W)
+            sage: A = ReflectionGroup3d(W) # long time
             doctest:warning
             ...
             UserWarning: Point was shortened to match group rank
@@ -170,6 +170,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             self.real_dimension = group.rank()
         else:
             self.real_dimension = 2*group.rank()
+
 
     def _verify_point(self, group, point):
         """
@@ -190,17 +191,17 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         EXAMPLES:
 
         ::
-            sage: W = ReflectionGroup(["C",3]) #long time
+            sage: W = ReflectionGroup(["C",3])
             sage: my_point = (1,2)
-            sage: ReflectionGroup3d(W, my_point) #long time
+            sage: ReflectionGroup3d(W, my_point)
             Traceback (most recent call last):
             ...
             TypeError: Check dimension of point (does not match group rank)
 
         ::
-            sage: W = ReflectionGroup(["C",3]) #long time
+            sage: W = ReflectionGroup(["C",3])
             sage: my_point_1 = (1,2,3)
-            sage: ReflectionGroup3d(W, my_point_1) #long time
+            sage: ReflectionGroup3d(W, my_point_1) # long time
             <class '__main__.ReflectionGroup3d'>
         """
         if group.rank() == len(point):
@@ -394,6 +395,16 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
     def list_edges(self, r=None):
         """
+        Lists the edges of the current model. Lists edges corresponding to a
+        single reflection, if specified.
+
+        EXAMPLES:
+
+        ::
+
+        ::
+
+
         """
         if r == None:
             return self.edges["visible"].keys()
@@ -414,7 +425,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         - ``positive real number`` -- the desired thickness
 
-        EXAMPLS:
+        EXAMPLES:
 
         ::
 
@@ -427,8 +438,16 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         for edge in self.edges["edge_thickness"].keys():
             self.edges["edge_thickness"][edge] = edge_thickness
 
+
     def edge_colors(self):
+        """
+        Returns the dictionary mapping edges to their set colors.
+
+        SEEALSO:
+            :func:`~cayley_model.edge_color`
+        """
         return self.edges["color"]
+
 
     def edge_color(self, color=None, **kwds):
         """
@@ -440,11 +459,27 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         - ``color`` -- the desired color of all edges
 
-        EXAMPLS:
+        EXAMPLES:
 
-        ::
+        Changing colors of some reflections::
+                sage: W = ReflectionGroup(['A',3])
+                sage: G = ReflectionGroup3d(W) # long time
+                sage: G.edge_color("red", reflections=G.group.reflections().list()[:2])
+                sage: G.edge_color("purple", reflections=G.group.reflections().list()[3:5])
+                sage: G.edge_colors() # random
 
-        ::
+
+        Changing colors of all edges::
+                sage: W = ReflectionGroup(['A',3])
+                sage: G = ReflectionGroup3d(W) # long time
+                sage: G.edge_color("red")
+                sage: G.edge_colors() # random
+
+        Changing colors of a select few edges::
+                sage: W = ReflectionGroup(['A',3])
+                sage: G = ReflectionGroup3d(W) # long time
+                sage: G.edge_color("purple", edges=G.edges["visible"].keys()[3:5])
+                sage: G.edge_colors() # random
 
         """
         if color == None:
@@ -458,9 +493,75 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
                 self.edges["color"][e] = color
         if len(kwds) == 0:
             self.edge_properties["color"] = color
-            self.edges["color"] = {tuple(e):color for e in cosets}
+            for e in self.edges["color"].keys():
+                self.edges["color"][tuple(e)] = color
 
     def vertex_colors(self):
+        """
+        Return the dictionary mapping vertices to their set colors.
+
+        EXAMPLES:
+        Return default colors::
+                sage: W = ReflectionGroup(['A',3])
+                sage: G = ReflectionGroup3d(W) # long time
+                sage: G.vertex_colors()
+                {(): 'gray',
+                 (2,5)(3,9)(4,6)(8,11)(10,12): 'gray',
+                 (1,2,3,12)(4,5,10,11)(6,7,8,9): 'gray',
+                 (1,2,10)(3,6,5)(4,7,8)(9,12,11): 'gray',
+                 (1,3,7,9)(2,11,6,10)(4,8,5,12): 'gray',
+                 (1,3)(2,12)(4,10)(5,11)(6,8)(7,9): 'gray',
+                 (1,4,6)(2,3,11)(5,8,9)(7,10,12): 'gray',
+                 (1,4)(2,8)(3,5)(7,10)(9,11): 'gray',
+                 (1,5,12)(2,9,4)(3,10,8)(6,7,11): 'gray',
+                 (1,5,9,10)(2,12,8,6)(3,4,7,11): 'gray',
+                 (1,6)(2,9)(3,8)(5,11)(7,12): 'gray',
+                 (1,6,4)(2,11,3)(5,9,8)(7,12,10): 'gray',
+                 (1,7)(2,4)(5,6)(8,10)(11,12): 'gray',
+                 (1,7)(2,6)(3,9)(4,5)(8,12)(10,11): 'gray',
+                 (1,8,11)(2,5,7)(3,12,4)(6,10,9): 'gray',
+                 (1,8)(2,7)(3,6)(4,10)(9,12): 'gray',
+                 (1,9)(2,8)(3,7)(4,11)(5,10)(6,12): 'gray',
+                 (1,9,7,3)(2,10,6,11)(4,12,5,8): 'gray',
+                 (1,10,2)(3,5,6)(4,8,7)(9,11,12): 'gray',
+                 (1,10,9,5)(2,6,8,12)(3,11,7,4): 'gray',
+                 (1,11)(3,10)(4,9)(5,7)(6,12): 'gray',
+                 (1,11,8)(2,7,5)(3,4,12)(6,9,10): 'gray',
+                 (1,12,3,2)(4,11,10,5)(6,9,8,7): 'gray',
+                 (1,12,5)(2,4,9)(3,8,10)(6,11,7): 'gray'}
+
+        Return colors after some have been set individually:
+                sage: W = ReflectionGroup(['A',3])
+                sage: G = ReflectionGroup3d(W) # long time
+                sage: G.vertex_color("red", vertices=G.group.list()[:2])
+                sage: G.vertex_color("purple", vertices=G.group.list()[3:5])
+                sage: G.vertex_colors()
+                {(): 'red',
+                 (2,5)(3,9)(4,6)(8,11)(10,12): 'red',
+                 (1,2,3,12)(4,5,10,11)(6,7,8,9): 'gray',
+                 (1,2,10)(3,6,5)(4,7,8)(9,12,11): 'gray',
+                 (1,3,7,9)(2,11,6,10)(4,8,5,12): 'gray',
+                 (1,3)(2,12)(4,10)(5,11)(6,8)(7,9): 'gray',
+                 (1,4,6)(2,3,11)(5,8,9)(7,10,12): 'gray',
+                 (1,4)(2,8)(3,5)(7,10)(9,11): 'gray',
+                 (1,5,12)(2,9,4)(3,10,8)(6,7,11): 'gray',
+                 (1,5,9,10)(2,12,8,6)(3,4,7,11): 'gray',
+                 (1,6)(2,9)(3,8)(5,11)(7,12): 'gray',
+                 (1,6,4)(2,11,3)(5,9,8)(7,12,10): 'purple',
+                 (1,7)(2,4)(5,6)(8,10)(11,12): 'purple',
+                 (1,7)(2,6)(3,9)(4,5)(8,12)(10,11): 'gray',
+                 (1,8,11)(2,5,7)(3,12,4)(6,10,9): 'gray',
+                 (1,8)(2,7)(3,6)(4,10)(9,12): 'gray',
+                 (1,9)(2,8)(3,7)(4,11)(5,10)(6,12): 'gray',
+                 (1,9,7,3)(2,10,6,11)(4,12,5,8): 'gray',
+                 (1,10,2)(3,5,6)(4,8,7)(9,11,12): 'gray',
+                 (1,10,9,5)(2,6,8,12)(3,11,7,4): 'gray',
+                 (1,11)(3,10)(4,9)(5,7)(6,12): 'gray',
+                 (1,11,8)(2,7,5)(3,4,12)(6,9,10): 'gray',
+                 (1,12,3,2)(4,11,10,5)(6,9,8,7): 'gray',
+                 (1,12,5)(2,4,9)(3,8,10)(6,11,7): 'gray'}
+
+        """
         return self.vertices["color"]
 
     def vertex_color(self, color=None, **kwds):
@@ -475,8 +576,24 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             is a float between 0 and 1.
         - ``vertices`` - a list of vertices to change to the color.
 
-        EXAMPLES: Change all the vertex colors to red. Change some to red.
+        EXAMPLES:
 
+        Change all the vertex colors to red::
+                sage: W = ReflectionGroup(['A',3])
+                sage: G = ReflectionGroup3d(W) # long time
+                sage: G.vertex_color("red")
+
+        Change some to red::
+                sage: W = ReflectionGroup(['A',3])
+                sage: G = ReflectionGroup3d(W) # long time
+                sage: G.vertex_color("red", vertices=G.group.list()[:2])
+
+        Get current model vertex color::
+                sage: W = ReflectionGroup(['A',3])
+                sage: G = ReflectionGroup3d(W) # long time
+                sage: G.vertex_color("purple")
+                sage: G.vertex_color()
+                'purple'
 
         TODO: this example.
         """
@@ -511,15 +628,15 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         EXAMPLES:
 
-            sage: W = ReflectionGroup(['A',3]) #optional - gap3
-            sage: G = ReflectionGroup3d(W) #long time
+            sage: W = ReflectionGroup(['A',3])
+            sage: G = ReflectionGroup3d(W) # long time
             sage: G.plot3d() #long time
             Graphics3d Object
 
         ::
 
-            sage: W = ReflectionGroup(['A',3]) #optional - gap3
-            sage: G = ReflectionGroup3d(W) #long time
+            sage: W = ReflectionGroup(['A',3])
+            sage: G = ReflectionGroup3d(W) # long time
             sage: G.plot3d() #long time
             Graphics3d Object
 
@@ -564,7 +681,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         EXAMPLES:
 
         ::
-            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))#, point=(2,1,3))
+            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3])) # long time
             sage: edge = w._create_edge(w.edges["visible"].keys()[0])
             sage: print(edge.jmol_repr(edge.default_render_params())) # TODO: this color is generated randomly. Need to test better
             ['draw line_1 diameter 1 curve {-10.0 40.0 -60.0}  {-40.0 10.0 -30.0} ',
@@ -609,8 +726,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         EXAMPLES:
 
-        ::
-            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))
+            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3])) # long time
             sage: poly = Polyhedron(vertices = [[1, 2, 3], [0,1,0], [1,0,1]])
             sage: edge_boundaries = w._create_edge_boundaries(poly)
             sage: edge_boundaries.all
@@ -643,7 +759,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         EXAMPLES:
 
         Example of a polygon edge::
-            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3]))
+            sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3])) # long time
             sage: p = Polyhedron(vertices = [[1, 2, 3], [0,1,0], [1,0,1]])
             sage: poly_3d = w._thicken_polygon(p, .01)
             sage: poly_3d.all
