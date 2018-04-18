@@ -37,8 +37,10 @@ from time import time
 import warnings
 
 
-class ReflectionGroup3d(SageObject): # we might want to inherit from an object. Graphics?
-    """docstring for """
+class ReflectionGroup3d(SageObject): # we might want to inherit from a more specific object. Graphics?
+    """
+
+    """
     def __init__(self, group, point=(20,10,30), proj_plane=[0,0,0,1]):
         self._verify_group(group)
         self.group = group
@@ -469,7 +471,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         except KeyError:
             raise KeyError("%s is not a reflection of this group."%str(r))
 
-    def edge_thickesses(self):
+    def edge_thicknesses(self):
         return self.edges["edge_thickness"]
 
     def edge_thickness(self, edge_thickness=None, **kwds):
