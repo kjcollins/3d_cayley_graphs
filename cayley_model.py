@@ -76,7 +76,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         self.edges = {}
         self._construct_edges_dict()
 
-        self.outside_edges = {}
+        self._outside_edges()
 
 
         # get methods, set methods, and how plot3d will take parameters
@@ -108,16 +108,16 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
 
         If the group's rank is too big::
 
-            sage: W = ReflectionGroup((5,1,3)) #long time
-            sage: ReflectionGroup3d(W) #long time
+            sage: W = ReflectionGroup((5,1,3))
+            sage: ReflectionGroup3d(W)
             Traceback (most recent call last):
             ...
             TypeError: Group must be real with rank < 4, or complex with rank < 3
 
         If the group is in the wrong format::
 
-            sage: W = SymmetricGroup(4) #long time
-            sage: ReflectionGroup3d(W) #long time
+            sage: W = SymmetricGroup(4)
+            sage: ReflectionGroup3d(W)
             Traceback (most recent call last):
             ...
             TypeError: Group should be defined as a ReflectionGroup
@@ -373,23 +373,23 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
             for i in range(len(face.vertices())):
                 face_vertices.append(tuple(face.vertices()[i]))
             faces2_by_vertices.append(set(face_vertices))
-        for k in self.W.reflections():
-            S = self.W.subgroup([k])
-            for j in range(len(self.W.cosets(S))):
+        for k in self.group.reflections():
+            S = self.group.subgroup([k])
+            for j in range(len(self.group.cosets(S))):
                 vertex_set = []
-                for grp_elm in self.W.cosets(S)[j]:
+                for grp_elm in self.group.cosets(S)[j]:
                     coordinates = tuple(self.vertices["position"][grp_elm])
                     vertex_set.append(coordinates)
                 if set(vertex_set) in faces1_by_vertices:
-                    outside_edge_dictionary[tuple(self.W.cosets(S)[j])] = "1-face"
+                    outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "1-face"
                 elif set(vertex_set) not in faces1_by_vertices:
                     for two_face in faces2_by_vertices:
                         if set(vertex_set).issubset(two_face):
-                            outside_edge_dictionary[tuple(self.W.cosets(S)[j])] = "external edge"
+                            outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "external edge"
                         else:
-                            outside_edge_dictionary[tuple(self.W.cosets(S)[j])] = "internal edge"
+                            outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "internal edge"
 
-        return outside_edge_dictionary
+        self.outside_edges = outside_edge_dictionary
 
 
     def list_edges(self, r=None):
