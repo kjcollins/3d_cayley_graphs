@@ -469,7 +469,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from an object. 
         except KeyError:
             raise KeyError("%s is not a reflection of this group."%str(r))
 
-    def edge_thicnkesses(self):
+    def edge_thickesses(self):
         return self.edges["edge_thickness"]
 
     def edge_thickness(self, edge_thickness=None, **kwds):
