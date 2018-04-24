@@ -36,6 +36,9 @@ from random import randint, seed
 from time import time
 import warnings
 
+from sage.combinat.root_system.reflection_group_complex import ComplexReflectionGroup, IrreducibleComplexReflectionGroup
+from sage.combinat.root_system.reflection_group_real import RealReflectionGroup, IrreducibleRealReflectionGroup
+
 
 class ReflectionGroup3d(SageObject): # we might want to inherit from a more specific object. Graphics?
     """
@@ -124,8 +127,16 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             ...
             TypeError: Group should be defined as a ReflectionGroup
 
+
+        TODO:
+        - replace group_types with the list of categories we want to allow, rather than hardcoding from example groups
+
         """
-        if group.parent() in [ReflectionGroup((3,1,2)).parent(),ReflectionGroup(["A",2]).parent()]:
+        # group_types = [IrreducibleComplexReflectionGroup, IrreducibleRealReflectionGroup, ComplexReflectionGroup, RealReflectionGroup]
+        group_types = [ReflectionGroup((3,1,2)).parent(),ReflectionGroup(["A",2]).parent(), ReflectionGroup(["A", 2], ["B", 1]).parent()]
+        # print(g_cat for gcat.categories) ## TODO
+        # if group.parent() in group_types:
+        if type(group) in group_types:
             if group.rank() < 3:
                 return True
             elif group.rank() == 3:
