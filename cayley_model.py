@@ -23,12 +23,12 @@ AUTHORS:
 
 
 TODO:
-
-- Note for developers (and anyone else confused by Sage doc testing):
-sage -t --long --optional=mpir,python2,sage,gap3 --debug cayley_model.py
-is the line that tests everything in this file. Remove the "--debug" option
-if you don't want to try to interactively debug errors.
-
+- Finish documenting what is implemented here
+- implement setting vertex size, shape, and maybe one or two other parameters
+- set defaults for how thickness of edges affects fill (later, more logic can
+  be implemented)
+- override default class methods for a few we might want (equality, addition)
+- check developer guide for advice of where in Sage to submit this for review
 """
 
 from sage.structure.sage_object import SageObject
