@@ -403,7 +403,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
                         else:
                             outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "internal edge"
 
-        self.outside_edges = outside_edge_dictionary
+        self.outside_edge_dictionary = outside_edge_dictionary
 
     def one_faces(self, **kwds):
         """
@@ -412,10 +412,27 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         If called without arguements, returns a list of such edges.
 
         INPUTS:
+        - ``color`` -- a color
+
+        - ``thickness``  -- a non-negative real number
 
         EXAMPLES:
-        """
-        one_faces = [i for i,j in G.outside_edges.items() if j == "1-face"]
+
+        Make only the edges that are 1-faces of the convex hull thicker::
+            sage: W = ReflectionGroup(["B",3])
+            sage: G = ReflectionGroup3d(W)
+            sage: G.one_faces(thickness=.5)
+            sage: G.plot3d()
+            Graphics3d Object
+
+        Make only the edges that are 1-faces of the convex hull black::
+            sage: W = ReflectionGroup(["B",3])
+            sage: G = ReflectionGroup3d(W)
+            sage: G.one_faces(color="black")
+            sage: G.plot3d()
+            Graphics3d Object
+                    """
+        one_faces = [i for i,j in self.outside_edge_dictionary.items() if j == "1-face"]
         if len(kwds) == 0:
             return one_faces
         if "color" in kwds:
@@ -431,10 +448,25 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         INPUTS:
 
+        - ``color`` -- a color
+
+        - ``thickness`` -- a non-negative reall number
+
         EXAMPLES:
+
+        ::
+            sage: W = ReflectionGroup(["A",3])
+            sage: G = ReflectionGroup3d(W)
+            sage: G.outside_edges(color = "black", thickness =.5)
+            sage: G.edges["color"][G.outside_edges()[0]] == "black"
+            True
+            sage: G.edges["color"][G.inside_edges()[0]] == "black"
+            False
+            sage: G.edges["edge_thickness"][G.outside_edges()[0]]
+            0.500000000000000
         """
-        one_faces = [i for i,j in G.outside_edges.items() if j == "1-face"]
-        exterior_edges = [i for i,j in G.outside_edges.items() if j == "external edge"]
+        one_faces = [i for i,j in self.outside_edge_dictionary.items() if j == "1-face"]
+        exterior_edges = [i for i,j in self.outside_edge_dictionary.items() if j == "external edge"]
         outside_edges = union(one_faces, exterior_edges)
         if len(kwds) == 0:
             return outside_edges
@@ -451,9 +483,28 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         INPUTS:
 
+        - ``color`` -- a color
+
+        - ``thickness`` -- a non-negative reall number
+
         EXAMPLES:
+
+        Making all interior edges the same color::
+            sage: W = ReflectionGroup(["A",3])
+            sage: G = ReflectionGroup3d(W)
+            sage: G.inside_edges(color="red")
+            sage: G.G.edges["color"][G.inside_edges()[0]] == "red"
+            True
+
+        Making all interior edges go away::
+            sage: W = ReflectionGroup(["B",3])
+            sage: G = ReflectionGroup3d(W)
+            sage: G.inside_edges(thickness=0)
+            sage: G.plot3d()
+            Graphics3d Object
+
         """
-        inside_edges = [i for i,j in G.outside_edges.items() if j == "internal edge"]
+        inside_edges = [i for i,j in self.outside_edge_dictionary.items() if j == "internal edge"]
         if len(kwds) == 0:
             return inside_edges
         if "color" in kwds:
