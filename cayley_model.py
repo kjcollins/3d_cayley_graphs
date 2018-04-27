@@ -239,7 +239,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         OUTPUT:
 
-        -
+        Boolean True if a usable 4-tuple is entered
 
         """
         if len(plane) == 4:
@@ -431,7 +431,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             sage: G.one_faces(color="black")
             sage: G.plot3d()
             Graphics3d Object
-                    """
+        """
         one_faces = [i for i,j in self.outside_edge_dictionary.items() if j == "1-face"]
         if len(kwds) == 0:
             return one_faces
@@ -534,6 +534,12 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             raise KeyError("%s is not a reflection of this group."%str(r))
 
     def edge_thicknesses(self):
+        """
+        Returns the dictionary mapping edges to their set thicknesses.
+
+        SEEALSO:
+            :func:`~cayley_model.edge_thickness`
+        """
         return self.edges["edge_thickness"]
 
     def edge_thickness(self, edge_thickness=None, **kwds):
@@ -548,9 +554,11 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         EXAMPLES:
 
-        ::
+        Make all edges a given thickness:: 
 
-        ::
+        Make the edges associated to a single reflection disappear::
+
+        Make only some edges thicker::
 
         """
         if edge_thickness == None:
