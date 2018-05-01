@@ -10,9 +10,21 @@ physically printed. The class can handle real reflection groups of rank at most 
 and complex reflection groups or rank at most 2, which are realized first in real
 4d and then parallel projected into 3d for visualization and printing.
 
-EXAMPLES::
+The point of entry for working with ReflectionGroup3d is
+:func:`sage.combinat.root_system.reflection_group_real.ReflectionGroup`,
+and similar objects.
 
-<Lots and lots of examples>
+EXAMPLES::
+    Basic plot of a reflection group.
+        sage: ReflectionGroup(['A',3])                             # optional - gap3
+        Irreducible real reflection group of rank 3 and type A3
+        sage: w = ReflectionGroup(['A',3])                         # optional - gap3
+        sage: ReflectionGroup3d(w)
+        Rigid graphical representation of Irreducible real reflection group of rank 3 and type A3
+        sage: g = ReflectionGroup3d(w)
+        sage: g.plot3d()
+        Graphics3d Object
+
 
 AUTHORS:
 
@@ -28,7 +40,16 @@ TODO:
 - set defaults for how thickness of edges affects fill (later, more logic can
   be implemented)
 - override default class methods for a few we might want (equality, addition)
+- implement string representation so 'ReflectionGroup3d(w)' returns string
 - check developer guide for advice of where in Sage to submit this for review
+
+tests for::
+    - _outside_edges
+    - _verify_proj_plane
+    - edge_colors
+    - edge_thickness
+    - edge_thicknesses
+    - list_edges
 """
 
 from sage.structure.sage_object import SageObject
@@ -41,10 +62,26 @@ from sage.combinat.root_system.reflection_group_real import RealReflectionGroup,
 
 
 class ReflectionGroup3d(SageObject): # we might want to inherit from a more specific object. Graphics?
-    """
-
-    """
     def __init__(self, group, point=(20,10,30), proj_plane=[0,0,0,1]):
+        """
+        EXAMPLES::
+            This class allows a user to plot a reflection group.
+                sage: w = ReflectionGroup(['A',3])                         # optional - gap3
+                sage: g = ReflectionGroup3d(w)
+                sage: g.plot3d()
+                Graphics3d Object
+
+            The group, input point, and project plane can be changed:
+                sage: w = ReflectionGroup(['A',3], point=(15,8, 18))       # optional - gap3
+                sage: g = ReflectionGroup3d(w)
+
+            Visualization parameters can be changed after the model is created:
+                sage: w = ReflectionGroup(['A',3])                         # optional - gap3
+                sage: g = ReflectionGroup3d(w)
+                sage: g.edge_color('purple')
+                sage: g.plot3d()
+                Graphics3d Object
+        """
         self._verify_group(group)
         self.group = group
 
@@ -88,6 +125,16 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         # are the visualization things that the constructor doesn't cover
 
 
+    def __repr__(self):
+        return "Rigid graphical representation of %s"%(str(self.group))
+
+
+    def __eq__(self, other):
+        if self.reflections == other.reflections:
+            return True
+        else:
+            return False
+
 
     def _verify_group(self, group):
         """
@@ -109,7 +156,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
             sage: W = ReflectionGroup(["C",3]) #long time
             sage: ReflectionGroup3d(W) #long time
-            <class '__main__.ReflectionGroup3d'>
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type C3
 
         If the group's rank is too big::
 
@@ -215,7 +262,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             sage: W = ReflectionGroup(["C",3])
             sage: my_point_1 = (1,2,3)
             sage: ReflectionGroup3d(W, my_point_1) # long time
-            <class '__main__.ReflectionGroup3d'>
+            Rigid graphical representation of Irreducible real reflection group of rank 3 and type C3
         """
         if group.rank() == len(point):
             return point
@@ -367,8 +414,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
                 self.edges[key] = {tuple(e):value for e in cosets}
 
 
-    def _outside_edges(self): #if private, "create" method
-                                # if public, return if known, create if uninitialized?
+    def _outside_edges(self): # private creation method
         """
         Creates a dictionary which categorizes edges as begin 1-faces of the polytope,
         contained in 2-faces of the polytope, or internal to the structure.
@@ -440,7 +486,8 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         if "thickness" in kwds:
             self.edge_thickness(edge_thickness=kwds["thickness"], edges=one_faces)
 
-    def outside_edges(self, **kwds):
+    def outside_edges(self, **kwds):   # public get/set method
+
         """
         Allows user to change properties of edges that are on the exterior of the convex hull.
 
@@ -493,7 +540,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             sage: W = ReflectionGroup(["A",3])
             sage: G = ReflectionGroup3d(W)
             sage: G.inside_edges(color="red")
-            sage: G.G.edges["color"][G.inside_edges()[0]] == "red"
+            sage: G.edges["color"][G.inside_edges()[0]] == "red"
             True
 
         Making all interior edges go away::
@@ -537,6 +584,18 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         """
         Returns the dictionary mapping edges to their set thicknesses.
 
+        EXAMPLES:
+            sage: w = ReflectionGroup(['A', 3])
+            sage: g = ReflectionGroup3d(w)
+            sage: g.edge_thicknesses()
+            {((), (2,5)(3,9)(4,6)(8,11)(10,12)): 0.01,
+             ((), (1,4)(2,8)(3,5)(7,10)(9,11)): 0.01,
+             ((), (1,6)(2,9)(3,8)(5,11)(7,12)): 0.01,
+             ((), (1,7)(2,4)(5,6)(8,10)(11,12)): 0.01,
+             ...
+             ((1,11,8)(2,7,5)(3,4,12)(6,9,10), (1,12,3,2)(4,11,10,5)(6,9,8,7)): 0.01,
+             ((1,12,3,2)(4,11,10,5)(6,9,8,7), (1,12,5)(2,4,9)(3,8,10)(6,11,7)): 0.01}
+
         SEEALSO:
             :func:`~cayley_model.edge_thickness`
         """
@@ -554,7 +613,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         EXAMPLES:
 
-        Make all edges a given thickness:: 
+        Make all edges a given thickness::
 
         Make the edges associated to a single reflection disappear::
 
