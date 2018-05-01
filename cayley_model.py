@@ -48,8 +48,9 @@ tests for::
     - _verify_proj_plane
     - edge_colors
     - edge_thickness
-    - edge_thicknesses
-    - list_edges
+
+in tests:
+    - check that the model isn't plotted unnecessarily (slows down testing)
 """
 
 from sage.structure.sage_object import SageObject
@@ -105,7 +106,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         self._construct_vertices_dict()
 
         self.edge_properties = {"edge_thickness":.01,
-                                "color":"gray",
+                                "color":None,
                                 "fill":True,
                                 "fill_size": .05,
                                 "boundaries": True,
@@ -130,7 +131,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
 
     def __eq__(self, other):
-        if self.reflections == other.reflections:
+        if self.is_isomorphic(other):
             return True
         else:
             return False
@@ -273,7 +274,6 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             raise TypeError("Check dimension of point (does not match group rank)")
 
 
-
     def _verify_proj_plane(self, plane):
         """
         Perform error checking on vector input
@@ -350,6 +350,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             else:
                 self.vertices[key] = {v:value for v in self.group.list()}
 
+
     def _construct_edges_dict(self):
         """
         Constructs the dictionary of edge properties.
@@ -403,10 +404,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             if key=="color":
                 self.edges[key] = {}
                 acc = 0
-                seed(time())
-                for subgp in subgroups:
+                rainbow_colors = rainbow(len(subgroups))
+                for i, subgp in enumerate(subgroups):
                     acc += 1
-                    color = (randint(0,255), randint(0,255), randint(0,255))
+                    color = rainbow_colors[i]
                     for e in self.group.cosets(subgp):
                         self.edges[key][tuple(e)] = color
             else:
@@ -451,6 +452,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         self.outside_edge_dictionary = outside_edge_dictionary
 
+
     def one_faces(self, **kwds):
         """
         Allows user to change properties of edges that are a one-face of the convex hull.
@@ -486,6 +488,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         if "thickness" in kwds:
             self.edge_thickness(edge_thickness=kwds["thickness"], edges=one_faces)
 
+
     def outside_edges(self, **kwds):   # public get/set method
 
         """
@@ -510,7 +513,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             sage: G.edges["color"][G.inside_edges()[0]] == "black"
             False
             sage: G.edges["edge_thickness"][G.outside_edges()[0]]
-            0.500000000000000
+            0.5
         """
         one_faces = [i for i,j in self.outside_edge_dictionary.items() if j == "1-face"]
         exterior_edges = [i for i,j in self.outside_edge_dictionary.items() if j == "external edge"]
@@ -521,6 +524,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             self.edge_color(color=kwds["color"],edges=outside_edges)
         if "thickness" in kwds:
             self.edge_thickness(edge_thickness=kwds["thickness"], edges=outside_edges)
+
 
     def inside_edges(self, **kwds):
         """
@@ -559,6 +563,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         if "thickness" in kwds:
             self.edge_thickness(edge_thickness=kwds["thickness"], edges=inside_edges)
 
+
     def list_edges(self, r=None):
         """
         Lists the edges of the current model. Lists edges corresponding to a
@@ -566,19 +571,43 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         EXAMPLES:
 
-        ::
+        List all edges of the model::
+            sage: w = ReflectionGroup(["A", 3])
+            sage: g = ReflectionGroup3d(w)
+            sage: g.list_edges()
+            [((1,8,11)(2,5,7)(3,12,4)(6,10,9), (1,11)(3,10)(4,9)(5,7)(6,12)),
+             ((), (1,4)(2,8)(3,5)(7,10)(9,11)),
+             ((), (1,8)(2,7)(3,6)(4,10)(9,12)),
+             ...
+             ((), (1,11)(3,10)(4,9)(5,7)(6,12)),
+             ((1,4,6)(2,3,11)(5,8,9)(7,10,12), (1,4)(2,8)(3,5)(7,10)(9,11)),
+             ((2,5)(3,9)(4,6)(8,11)(10,12), (1,11,8)(2,7,5)(3,4,12)(6,9,10))]
 
-        ::
-
+        List the edges corresponding to one reflection in the model::
+            sage: w = ReflectionGroup(["A", 3])
+            sage: g = ReflectionGroup3d(w)
+            sage: g.list_edges(g.group.reflections().values()[0])
+            [((), (1,7)(2,4)(5,6)(8,10)(11,12)),
+             ((2,5)(3,9)(4,6)(8,11)(10,12), (1,7)(2,6)(3,9)(4,5)(8,12)(10,11)),
+             ((1,2,3,12)(4,5,10,11)(6,7,8,9), (1,8,11)(2,5,7)(3,12,4)(6,10,9)),
+             ((1,2,10)(3,6,5)(4,7,8)(9,12,11), (1,8)(2,7)(3,6)(4,10)(9,12)),
+             ((1,3,7,9)(2,11,6,10)(4,8,5,12), (1,9)(2,8)(3,7)(4,11)(5,10)(6,12)),
+             ((1,3)(2,12)(4,10)(5,11)(6,8)(7,9), (1,9,7,3)(2,10,6,11)(4,12,5,8)),
+             ((1,4,6)(2,3,11)(5,8,9)(7,10,12), (1,10,9,5)(2,6,8,12)(3,11,7,4)),
+             ((1,4)(2,8)(3,5)(7,10)(9,11), (1,10,2)(3,5,6)(4,8,7)(9,11,12)),
+             ((1,5,12)(2,9,4)(3,10,8)(6,7,11), (1,11)(3,10)(4,9)(5,7)(6,12)),
+             ((1,5,9,10)(2,12,8,6)(3,4,7,11), (1,11,8)(2,7,5)(3,4,12)(6,9,10)),
+             ((1,6)(2,9)(3,8)(5,11)(7,12), (1,12,5)(2,4,9)(3,8,10)(6,11,7)),
+             ((1,6,4)(2,11,3)(5,9,8)(7,12,10), (1,12,3,2)(4,11,10,5)(6,9,8,7))]
 
         """
         if r == None:
             return self.edges["visible"].keys()
-        # if r is in self.group.reflections():
         try:
             return self.reflection_edges[r]
         except KeyError:
             raise KeyError("%s is not a reflection of this group."%str(r))
+
 
     def edge_thicknesses(self):
         """
@@ -601,11 +630,14 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         """
         return self.edges["edge_thickness"]
 
+
     def edge_thickness(self, edge_thickness=None, **kwds):
         """
         Change the thickness of all edges.
 
-        If called with no input, returns current edge thickness
+        If called with no input, returns current edge thickness.
+        New size of edge restricted to precision of 3.
+
 
         INPUTS:
 
@@ -614,14 +646,36 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         EXAMPLES:
 
         Make all edges a given thickness::
+            sage: w = ReflectionGroup(["A", 3])
+            sage: g = ReflectionGroup3d(w)
+            sage: g.edge_thickness()
+            0.01
+            sage: g.edge_thickness(0.05)
+            sage: g.edge_thickness()
+            0.05
 
         Make the edges associated to a single reflection disappear::
+            sage: w = ReflectionGroup(["A", 3])
+            sage: g = ReflectionGroup3d(w)
+            sage: g.edge_thickness(0, reflections=[g.group.reflections().values()[0]])
+            sage: g.edge_thicknesses()
+            {((), (2,5)(3,9)(4,6)(8,11)(10,12)): 0.01,
+             ((), (1,4)(2,8)(3,5)(7,10)(9,11)): 0.01,
+             ((), (1,6)(2,9)(3,8)(5,11)(7,12)): 0.01,
+             ((), (1,7)(2,4)(5,6)(8,10)(11,12)): 0.0,
+             ((), (1,8)(2,7)(3,6)(4,10)(9,12)): 0.01,
+             ...
+             ((1,11)(3,10)(4,9)(5,7)(6,12), (1,12,5)(2,4,9)(3,8,10)(6,11,7)): 0.01,
+             ((1,11,8)(2,7,5)(3,4,12)(6,9,10), (1,12,3,2)(4,11,10,5)(6,9,8,7)): 0.01,
+             ((1,12,3,2)(4,11,10,5)(6,9,8,7), (1,12,5)(2,4,9)(3,8,10)(6,11,7)): 0.01}
 
         Make only some edges thicker::
 
         """
+
         if edge_thickness == None:
             return self.edge_properties["edge_thickness"]
+        edge_thickness = round(edge_thickness, 3)
         if "reflections" in kwds:
             for r in kwds["reflections"]:
                 for e in self.list_edges(r):
@@ -629,10 +683,11 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         if "edges" in kwds:
             for e in kwds["edges"]:
                 self.edges["edge_thickness"][e] = edge_thickness
-#        self.edge_properties["edge_thickness"] = edge_thickness
-#        for edge in self.edges["edge_thickness"].keys():
-#            self.edges["edge_thickness"][edge] = edge_thickness
 
+        if len(kwds) == 0:
+            self.edge_properties["edge_thickness"] = edge_thickness
+            for e in self.edges["edge_thickness"].keys():
+                self.edges["edge_thickness"][tuple(e)] = edge_thickness
 
     def edge_colors(self):
         """
@@ -648,7 +703,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         """
         Change the color of all edges.
 
-        If called with no input, returns current color
+        If called with no input, returns current color.
 
         INPUTS:
 
@@ -690,6 +745,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             self.edge_properties["color"] = color
             for e in self.edges["color"].keys():
                 self.edges["color"][tuple(e)] = color
+
 
     def vertex_colors(self):
         """
@@ -759,6 +815,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         """
         return self.vertices["color"]
 
+
     def vertex_color(self, color=None, **kwds):
         """
         Set the vertex color for all vertices.
@@ -810,7 +867,6 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
                 self.vertices["color"][v] = color
 
 
-
     def plot3d(self):
         """
         Create a graphics3dGroup object that represents the reflection
@@ -860,6 +916,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
                                 color = self.vertices["color"][vertex],
                                 size = self.vertices["radius"][vertex])
         return x
+
 
     def _create_edge(self, coset):
         r"""
@@ -938,6 +995,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         _object += line3d(v_list, color="purple", radius=.1)
 
         return _object
+
 
     def _thicken_polygon(self, polytope_in_2d, thickness):
         """
