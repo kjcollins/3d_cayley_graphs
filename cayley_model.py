@@ -44,8 +44,7 @@ TODO:
 - check developer guide for advice of where in Sage to submit this for review
 
 tests for::
-    - _outside_edges
-    - _verify_proj_plane
+    - _proj_plane
     - edge_colors
     - edge_thickness
 
@@ -83,15 +82,15 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
                 sage: g.plot3d()
                 Graphics3d Object
         """
-        self._verify_group(group)
+        self._group(group)
         self.group = group
 
         self._real_dimension(group)
 
-        point = self._verify_point(group, point)
+        point = self._point(group, point)
         self.init_point = vector(point) # decide about vector construction
 
-        self._verify_proj_plane(proj_plane)
+        self._proj_plane(proj_plane)
         self.proj_plane = proj_plane
 
         self.reflections = self.group.reflections()
@@ -137,7 +136,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             return False
 
 
-    def _verify_group(self, group):
+    def _group(self, group):
         """
         Perform error checking on group input
         Return boolean of whether input group can be represented in 3d
@@ -233,7 +232,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             self.real_dimension = 2*group.rank()
 
 
-    def _verify_point(self, group, point):
+    def _point(self, group, point):
         """
         Perform error checking on point input
         If rank two reflection group, need 2d point
@@ -287,6 +286,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         OUTPUT:
 
         Boolean True if a usable 4-tuple is entered
+
+        EXAMPLES:
+
+        ::
 
         """
         if len(plane) == 4:
@@ -419,6 +422,23 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         """
         Creates a dictionary which categorizes edges as begin 1-faces of the polytope,
         contained in 2-faces of the polytope, or internal to the structure.
+
+        EXAMPLES:
+
+        Check that every edge is either on the inside or outside::
+            sage: W = ReflectionGroup(["A",3])
+            sage: G = ReflectionGroup3d(W)
+            sage: set(G.outside_edges()).intersection(set(G.inside_edges()))
+            set([])
+            sage: len(G.outside_edges())+len(G.inside_edges()) == len(G.edges["color"])
+            True
+
+        Check that the 1-faces are also outside edges::
+            sage: W = ReflectionGroup(["A",3])
+            sage: G = ReflectionGroup3d(W)
+            sage: set(G.one_faces()).issubset(G.outside_edges())
+            True
+
         """
         convex_bounding_polyhedron = Polyhedron(vertices = self.vertices["position"].values())
         outside_edge_dictionary = {}
@@ -434,6 +454,9 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             for i in range(len(face.vertices())):
                 face_vertices.append(tuple(face.vertices()[i]))
             faces2_by_vertices.append(set(face_vertices))
+        one_faces_list = []
+        outside_list = []
+        inside_list = []
         for k in self.group.reflections():
             S = self.group.subgroup([k])
             for j in range(len(self.group.cosets(S))):
@@ -441,17 +464,19 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
                 for grp_elm in self.group.cosets(S)[j]:
                     coordinates = tuple(self.vertices["position"][grp_elm])
                     vertex_set.append(coordinates)
+                print vertex_set
+                outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "internal edge"
                 if set(vertex_set) in faces1_by_vertices:
                     outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "1-face"
-                elif set(vertex_set) not in faces1_by_vertices:
+                    one_faces_list.append(tuple(self.group.cosets(S)[j]))
+                else:
                     for two_face in faces2_by_vertices:
                         if set(vertex_set).issubset(two_face):
                             outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "external edge"
-                        else:
-                            outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "internal edge"
+                            outside_list.append(tuple(self.group.cosets(S)[j]))
+                print outside_edge_dictionary[tuple(self.group.cosets(S)[j])]
 
         self.outside_edge_dictionary = outside_edge_dictionary
-
 
     def one_faces(self, **kwds):
         """
@@ -695,6 +720,35 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         SEEALSO:
             :func:`~cayley_model.edge_color`
+
+        EXAMPLES:
+
+        Returns the default color dictionary::
+            sage: W = ReflectionGroup((2,1,2))
+            sage: G = ReflectionGroup3d(W)
+            sage: G.edge_colors()
+            {((1,7)(3,5)(4,8), (1,7,5,3)(2,4,6,8)): '#00ffff', ((), (1,7)(3,5)(4,8)): '#7f00ff',
+            ((), (1,3)(2,6)(5,7)): '#7fff00', ((1,5)(2,4)(6,8), (1,5)(2,6)(3,7)(4,8)): '#00ffff',
+            ((2,8)(3,7)(4,6), (1,3,5,7)(2,8,6,4)): '#7f00ff', ((), (2,8)(3,7)(4,6)): '#00ffff',
+            ((1,3,5,7)(2,8,6,4), (1,5)(2,4)(6,8)): '#7fff00', ((1,3)(2,6)(5,7), (1,3,5,7)(2,8,6,4)): '#00ffff',
+            ((1,3)(2,6)(5,7), (1,7,5,3)(2,4,6,8)): '#ff0000', ((1,5)(2,4)(6,8), (1,7,5,3)(2,4,6,8)): '#7f00ff',
+            ((1,3)(2,6)(5,7), (1,5)(2,6)(3,7)(4,8)): '#7f00ff', ((), (1,5)(2,4)(6,8)): '#ff0000',
+            ((2,8)(3,7)(4,6), (1,7,5,3)(2,4,6,8)): '#7fff00', ((1,3,5,7)(2,8,6,4), (1,7)(3,5)(4,8)): '#ff0000',
+            ((1,5)(2,6)(3,7)(4,8), (1,7)(3,5)(4,8)): '#7fff00', ((2,8)(3,7)(4,6), (1,5)(2,6)(3,7)(4,8)): '#ff0000'}
+
+        ::
+            sage: W = ReflectionGroup((2,1,2))
+            sage: G = ReflectionGroup3d(W)
+            sage: G.edge_color("red")
+            sage: G.edge_colors()
+            {((1,7)(3,5)(4,8), (1,7,5,3)(2,4,6,8)): 'red', ((), (1,7)(3,5)(4,8)): 'red',
+            ((), (1,3)(2,6)(5,7)): 'red', ((1,5)(2,4)(6,8), (1,5)(2,6)(3,7)(4,8)): 'red',
+            ((2,8)(3,7)(4,6), (1,3,5,7)(2,8,6,4)): 'red', ((), (2,8)(3,7)(4,6)): 'red',
+            ((1,3,5,7)(2,8,6,4), (1,5)(2,4)(6,8)): 'red', ((1,3)(2,6)(5,7), (1,3,5,7)(2,8,6,4)): 'red',
+            ((1,3)(2,6)(5,7), (1,7,5,3)(2,4,6,8)): 'red', ((1,5)(2,4)(6,8), (1,7,5,3)(2,4,6,8)): 'red',
+            ((1,3)(2,6)(5,7), (1,5)(2,6)(3,7)(4,8)): 'red', ((), (1,5)(2,4)(6,8)): 'red',
+            ((2,8)(3,7)(4,6), (1,7,5,3)(2,4,6,8)): 'red', ((1,3,5,7)(2,8,6,4), (1,7)(3,5)(4,8)): 'red',
+            ((1,5)(2,6)(3,7)(4,8), (1,7)(3,5)(4,8)): 'red', ((2,8)(3,7)(4,6), (1,5)(2,6)(3,7)(4,8)): 'red'}
         """
         return self.edges["color"]
 
