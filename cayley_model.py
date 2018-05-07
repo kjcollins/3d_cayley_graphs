@@ -35,21 +35,18 @@ AUTHORS:
 
 
 TODO:
-- Finish documenting what is implemented here
-- implement setting vertex size, shape, and maybe one or two other parameters
-- set defaults for how thickness of edges affects fill (later, more logic can
-  be implemented)
-- override default class methods for a few we might want (equality, addition)
-- implement string representation so 'ReflectionGroup3d(w)' returns string
-- check developer guide for advice of where in Sage to submit this for review
+    - Finish documenting what is implemented here
+    - implement setting vertex size, shape, and maybe one or two other parameters
+    - set defaults for how thickness of edges affects fill (later, more logic can
+      be implemented)
+    - check developer guide for advice of where in Sage to submit this for review
+    - implement addition of ReflectionGroup3d objects
 
-tests for::
-    - _proj_plane
-    - edge_colors
-    - edge_thickness
+    tests for:
+        - _verify_proj_plane
 
-in tests:
-    - check that the model isn't plotted unnecessarily (slows down testing)
+    in tests:
+        - check that the model isn't plotted unnecessarily (slows down testing)
 """
 
 from sage.structure.sage_object import SageObject
@@ -82,15 +79,15 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
                 sage: g.plot3d()
                 Graphics3d Object
         """
-        self._group(group)
+        self._verify_group(group)
         self.group = group
 
         self._real_dimension(group)
 
-        point = self._point(group, point)
+        point = self._verify_point(group, point)
         self.init_point = vector(point) # decide about vector construction
 
-        self._proj_plane(proj_plane)
+        self._verify_proj_plane(proj_plane)
         self.proj_plane = proj_plane
 
         self.reflections = self.group.reflections()
@@ -108,7 +105,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
                                 "color":None,
                                 "fill":True,
                                 "fill_size": .05,
-                                "boundaries": True,
+                                "boundaries": True, # TODO edge fill parameters implementation
                                 "boundary_thickness":.01,
                                 "visible":True}
         # IDEA: only include "boundaries" if the group chosen has edges that can use them?
@@ -136,7 +133,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             return False
 
 
-    def _group(self, group):
+    def _verify_group(self, group):
         """
         Perform error checking on group input
         Return boolean of whether input group can be represented in 3d
@@ -232,7 +229,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             self.real_dimension = 2*group.rank()
 
 
-    def _point(self, group, point):
+    def _verify_point(self, group, point):
         """
         Perform error checking on point input
         If rank two reflection group, need 2d point
@@ -429,7 +426,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             sage: W = ReflectionGroup(["A",3])
             sage: G = ReflectionGroup3d(W)
             sage: set(G.outside_edges()).intersection(set(G.inside_edges()))
-            set([])
+            set()
             sage: len(G.outside_edges())+len(G.inside_edges()) == len(G.edges["color"])
             True
 
@@ -464,7 +461,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
                 for grp_elm in self.group.cosets(S)[j]:
                     coordinates = tuple(self.vertices["position"][grp_elm])
                     vertex_set.append(coordinates)
-                print vertex_set
+                # print vertex_set
                 outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "internal edge"
                 if set(vertex_set) in faces1_by_vertices:
                     outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "1-face"
@@ -474,7 +471,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
                         if set(vertex_set).issubset(two_face):
                             outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "external edge"
                             outside_list.append(tuple(self.group.cosets(S)[j]))
-                print outside_edge_dictionary[tuple(self.group.cosets(S)[j])]
+                # print outside_edge_dictionary[tuple(self.group.cosets(S)[j])]
 
         self.outside_edge_dictionary = outside_edge_dictionary
 
@@ -714,6 +711,52 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             for e in self.edges["edge_thickness"].keys():
                 self.edges["edge_thickness"][tuple(e)] = edge_thickness
 
+
+    def visibility(self, visible,  _object=None):
+        """
+        Sets visibility of edges, reflections, vertices, or groups of vertices on or off.
+
+        INPUT:
+            A boolean for whether the visibility of the selected object should
+            be turned on (True) or off (False).
+
+            An object or list of objects in the model.
+
+        EXAMPLES:
+
+            Make all vertices invisible:
+
+            Make all edges invisible:
+
+            Make all edges of a single reflection invisible:
+
+            Make group of edges invisible:
+
+            Make group of vertices invisible:
+
+
+        """
+        if edge_thickness == None:
+            return self.edge_properties["visible"], self.vertex_properties["visible"]
+
+        if type(_object) == type([]):
+            pass
+        
+
+        if "reflections" in kwds:
+            for r in kwds["reflections"]:
+                for e in self.list_edges(r):
+                    self.edges["edge_thickness"][e] = edge_thickness
+        if "edges" in kwds:
+            for e in kwds["edges"]:
+                self.edges["edge_thickness"][e] = edge_thickness
+
+        if len(kwds) == 0:
+            self.edge_properties["edge_thickness"] = edge_thickness
+            for e in self.edges["edge_thickness"].keys():
+                self.edges["edge_thickness"][tuple(e)] = edge_thickness
+
+
     def edge_colors(self):
         """
         Returns the dictionary mapping edges to their set colors.
@@ -726,29 +769,15 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         Returns the default color dictionary::
             sage: W = ReflectionGroup((2,1,2))
             sage: G = ReflectionGroup3d(W)
-            sage: G.edge_colors()
-            {((1,7)(3,5)(4,8), (1,7,5,3)(2,4,6,8)): '#00ffff', ((), (1,7)(3,5)(4,8)): '#7f00ff',
-            ((), (1,3)(2,6)(5,7)): '#7fff00', ((1,5)(2,4)(6,8), (1,5)(2,6)(3,7)(4,8)): '#00ffff',
-            ((2,8)(3,7)(4,6), (1,3,5,7)(2,8,6,4)): '#7f00ff', ((), (2,8)(3,7)(4,6)): '#00ffff',
-            ((1,3,5,7)(2,8,6,4), (1,5)(2,4)(6,8)): '#7fff00', ((1,3)(2,6)(5,7), (1,3,5,7)(2,8,6,4)): '#00ffff',
-            ((1,3)(2,6)(5,7), (1,7,5,3)(2,4,6,8)): '#ff0000', ((1,5)(2,4)(6,8), (1,7,5,3)(2,4,6,8)): '#7f00ff',
-            ((1,3)(2,6)(5,7), (1,5)(2,6)(3,7)(4,8)): '#7f00ff', ((), (1,5)(2,4)(6,8)): '#ff0000',
-            ((2,8)(3,7)(4,6), (1,7,5,3)(2,4,6,8)): '#7fff00', ((1,3,5,7)(2,8,6,4), (1,7)(3,5)(4,8)): '#ff0000',
-            ((1,5)(2,6)(3,7)(4,8), (1,7)(3,5)(4,8)): '#7fff00', ((2,8)(3,7)(4,6), (1,5)(2,6)(3,7)(4,8)): '#ff0000'}
+            sage: set(G.edge_colors().values()) == set(rainbow(len(G.reflections)))
+            True
 
         ::
             sage: W = ReflectionGroup((2,1,2))
             sage: G = ReflectionGroup3d(W)
             sage: G.edge_color("red")
-            sage: G.edge_colors()
-            {((1,7)(3,5)(4,8), (1,7,5,3)(2,4,6,8)): 'red', ((), (1,7)(3,5)(4,8)): 'red',
-            ((), (1,3)(2,6)(5,7)): 'red', ((1,5)(2,4)(6,8), (1,5)(2,6)(3,7)(4,8)): 'red',
-            ((2,8)(3,7)(4,6), (1,3,5,7)(2,8,6,4)): 'red', ((), (2,8)(3,7)(4,6)): 'red',
-            ((1,3,5,7)(2,8,6,4), (1,5)(2,4)(6,8)): 'red', ((1,3)(2,6)(5,7), (1,3,5,7)(2,8,6,4)): 'red',
-            ((1,3)(2,6)(5,7), (1,7,5,3)(2,4,6,8)): 'red', ((1,5)(2,4)(6,8), (1,7,5,3)(2,4,6,8)): 'red',
-            ((1,3)(2,6)(5,7), (1,5)(2,6)(3,7)(4,8)): 'red', ((), (1,5)(2,4)(6,8)): 'red',
-            ((2,8)(3,7)(4,6), (1,7,5,3)(2,4,6,8)): 'red', ((1,3,5,7)(2,8,6,4), (1,7)(3,5)(4,8)): 'red',
-            ((1,5)(2,6)(3,7)(4,8), (1,7)(3,5)(4,8)): 'red', ((2,8)(3,7)(4,6), (1,5)(2,6)(3,7)(4,8)): 'red'}
+            sage: G.edge_colors().values() == ['red'] * 16
+            True
         """
         return self.edges["color"]
 
