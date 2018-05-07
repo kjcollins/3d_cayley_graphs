@@ -676,21 +676,6 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             sage: g.edge_thickness()
             0.05
 
-        Make the edges associated to a single reflection disappear::
-            sage: w = ReflectionGroup(["A", 3])
-            sage: g = ReflectionGroup3d(w)
-            sage: g.edge_thickness(0, reflections=[g.group.reflections().values()[0]])
-            sage: g.edge_thicknesses()
-            {((), (2,5)(3,9)(4,6)(8,11)(10,12)): 0.01,
-             ((), (1,4)(2,8)(3,5)(7,10)(9,11)): 0.01,
-             ((), (1,6)(2,9)(3,8)(5,11)(7,12)): 0.01,
-             ((), (1,7)(2,4)(5,6)(8,10)(11,12)): 0.0,
-             ((), (1,8)(2,7)(3,6)(4,10)(9,12)): 0.01,
-             ...
-             ((1,11)(3,10)(4,9)(5,7)(6,12), (1,12,5)(2,4,9)(3,8,10)(6,11,7)): 0.01,
-             ((1,11,8)(2,7,5)(3,4,12)(6,9,10), (1,12,3,2)(4,11,10,5)(6,9,8,7)): 0.01,
-             ((1,12,3,2)(4,11,10,5)(6,9,8,7), (1,12,5)(2,4,9)(3,8,10)(6,11,7)): 0.01}
-
         Make only some edges thicker::
 
         """
@@ -698,6 +683,8 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         if edge_thickness == None:
             return self.edge_properties["edge_thickness"]
         edge_thickness = round(edge_thickness, 3)
+        if edge_thickness == 0:
+            raise RuntimeError('Use visibility method to make edges disappear')
         if "reflections" in kwds:
             for r in kwds["reflections"]:
                 for e in self.list_edges(r):
