@@ -15,7 +15,7 @@ The point of entry for working with ReflectionGroup3d is
 and similar objects.
 
 EXAMPLES::
-    Basic plot of a reflection group.
+    Basic plot of a reflection group:
         sage: ReflectionGroup(['A',3])                             # optional - gap3
         Irreducible real reflection group of rank 3 and type A3
         sage: w = ReflectionGroup(['A',3])                         # optional - gap3
@@ -24,6 +24,20 @@ EXAMPLES::
         sage: g = ReflectionGroup3d(w)
         sage: g.plot3d()
         Graphics3d Object
+
+    G(3,1,2):
+
+
+    G(6,2,2):
+
+
+    G4:
+
+
+    A1 x A1:
+
+
+    A1 x A2:
 
 
 AUTHORS:
@@ -45,7 +59,16 @@ TODO:
     tests for:
         - _verify_proj_plane
 
+    To test:
+        G(3,1,2)
+        G(6,2,2)
+        G4
+        A1 x A1
+        A1 x A2
+
+
     in tests:
+        - check that optional package fails gracefully
         - check that the model isn't plotted unnecessarily (slows down testing)
 """
 
@@ -569,10 +592,13 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             sage: G.edges["color"][G.inside_edges()[0]] == "red"
             True
 
-        Making all interior edges go away::
+        Cannot make all interior edges go away::
             sage: W = ReflectionGroup(["B",3])
             sage: G = ReflectionGroup3d(W)
             sage: G.inside_edges(thickness=0)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Use visibility method to make edges disappear
             sage: G.plot3d()
             Graphics3d Object
 
@@ -728,7 +754,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         if type(_object) == type([]):
             pass
-        
+
 
         if "reflections" in kwds:
             for r in kwds["reflections"]:
@@ -1092,6 +1118,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         - examples that better test what the graphics object contains
         """
+        # thickness = thickness * 60
         new_points = []
         long_normal_vector = vector(CC,((vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))).normalized())
         rounded_vector = []
@@ -1101,8 +1128,12 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         for point in polytope_in_2d.vertices():
             point1 = vector(point) + .5*thickness*normal_vector
+            point1 = vector([round(i,2) for i in point1])
             point2 = vector(point) - .5*thickness*normal_vector
+            point2 = vector([round(i,2) for i in point2])
+            print (point1), (point2)
             new_points.append(point1)
             new_points.append(point2)
 
+        print new_points
         return Polyhedron(vertices = new_points).plot()
