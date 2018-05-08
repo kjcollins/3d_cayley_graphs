@@ -115,7 +115,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         self.reflections = self.group.reflections()
 
-        self.vertex_properties = {"radius":10,
+        self.vertex_properties = {"radius":1.5,
                                   "shape":"sphere",
                                   "label":None,
                                   "visible":True,
@@ -124,12 +124,12 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         self.vertices = {}
         self._construct_vertices_dict()
 
-        self.edge_properties = {"edge_thickness":.01,
+        self.edge_properties = {"edge_thickness":1,
                                 "color":None,
                                 "fill":True,
-                                "fill_size": .05,
+                                "fill_size": .5,
                                 "boundaries": True, # TODO edge fill parameters implementation
-                                "boundary_thickness":.01,
+                                "boundary_thickness":1,
                                 "visible":True}
         # IDEA: only include "boundaries" if the group chosen has edges that can use them?
 
@@ -362,7 +362,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
                 return pos
             else:
                 pos4d = vector((CC(pos[0]).real_part(), CC(pos[0]).imag_part(), CC(pos[1]).real_part(), CC(pos[1]).imag_part()))
-                proj_pos4d = pos4d - vector(self.proj_plane).normalized().dot_product(pos4d)*pos4d.normalized()
+                proj_pos4d = pos4d - vector(self.proj_plane).normalized().dot_product(pos4d)*vector(self.proj_plane).normalized()
                 return proj_pos4d[0:3]
 
         for key, value in self.vertex_properties.items():
@@ -414,7 +414,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             refl = reflections[0]
             subgroup = self.group.subgroup([refl])
             subgroups.append(subgroup)
-            coset = self.group.cosets(subgroup)
+            coset = self.group.cosets(subgroup, side='left')
             self.reflection_edges[refl] = [tuple(e) for e in coset]
 
             cosets += coset
@@ -426,10 +426,8 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         for key, value in self.edge_properties.items():
             if key=="color":
                 self.edges[key] = {}
-                acc = 0
                 rainbow_colors = rainbow(len(subgroups))
                 for i, subgp in enumerate(subgroups):
-                    acc += 1
                     color = rainbow_colors[i]
                     for e in self.group.cosets(subgp):
                         self.edges[key][tuple(e)] = color
@@ -1008,7 +1006,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         for vertex, visible in self.vertices['visible'].items():
             if visible:
-                x += point3d(self.vertices["position"][vertex],
+                x += sphere(self.vertices["position"][vertex],
                                 color = self.vertices["color"][vertex],
                                 size = self.vertices["radius"][vertex])
         return x
@@ -1049,10 +1047,11 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             _object = sage.plot.plot3d.base.Graphics3dGroup([])
             edge_polyhedron = Polyhedron(vertices=edge_points)
             if self.edges["fill"][coset]: #fix
-                _object += self._thicken_polygon(edge_polyhedron,
-                            self.edges["boundary_thickness"][coset])
+                pass
+                # _object += self._thicken_polygon(edge_polyhedron, coset)
+                #            self.edges["boundary_thickness"][coset])
             if self.edges["boundaries"][coset]: #fix
-                _object += self._create_edge_boundaries(edge_polyhedron)
+                _object += self._create_edge_boundaries(edge_polyhedron, coset)
 
             if not self.edges["fill"][coset] and not self.edges["boundaries"][coset]:
                 raise NotImplementedError("Visible edge has neither fill nor boundary!")
@@ -1060,7 +1059,7 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
             return _object # TODO parameters
 
 
-    def _create_edge_boundaries(self, edge_polyhedron):
+    def _create_edge_boundaries(self, edge_polyhedron, coset):
         r"""
         Return graphics object with boundaries to a higher order edge (order>2).
 
@@ -1085,15 +1084,16 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         - provide more visualization options for object.
         """
         _object = sage.plot.plot3d.base.Graphics3dGroup([])
-        edge_face = edge_polyhedron.faces(2)[0]
+        print edge_polyhedron.faces(1)
+        edge_face = edge_polyhedron.faces(1)[0] # SHOULD BE TWO, changed while debugging projection
         v_list = list(edge_face.vertices())
         v_list.append(edge_face.vertices()[0])
-        _object += line3d(v_list, color="purple", radius=.1)
+        _object += line3d(v_list, color=self.edges["color"][coset], radius=1)
 
         return _object
 
 
-    def _thicken_polygon(self, polytope_in_2d, thickness):
+    def _thicken_polygon(self, polytope_in_2d, coset):
         """
         Return graphics object representing polyhedron in 3d with thickness.
 
@@ -1118,7 +1118,10 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         - examples that better test what the graphics object contains
         """
-        # thickness = thickness * 60
+        thickness = self.edges["boundary_thickness"][coset]
+        fill = self.edges["fill_size"][coset]
+        print "COSET", str(coset)
+
         new_points = []
         long_normal_vector = vector(CC,((vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))).normalized())
         rounded_vector = []
@@ -1127,13 +1130,13 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
         normal_vector = vector(rounded_vector)
 
         for point in polytope_in_2d.vertices():
-            point1 = vector(point) + .5*thickness*normal_vector
+            point1 = vector(point) + fill*thickness*normal_vector
             point1 = vector([round(i,1) for i in point1])
-            point2 = vector(point) - .5*thickness*normal_vector
+            point2 = vector(point) - fill*thickness*normal_vector
             point2 = vector([round(i,1) for i in point2])
             print (point1), (point2)
             new_points.append(point1)
             new_points.append(point2)
 
-        print new_points
-        return Polyhedron(vertices = new_points).plot()
+        w = Polyhedron(vertices = new_points)
+        return w.plot(color=self.edges["color"][coset])
