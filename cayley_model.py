@@ -1128,9 +1128,9 @@ class ReflectionGroup3d(SageObject): # we might want to inherit from a more spec
 
         for point in polytope_in_2d.vertices():
             point1 = vector(point) + .5*thickness*normal_vector
-            point1 = vector([round(i,2) for i in point1])
+            point1 = vector([round(i,1) for i in point1])
             point2 = vector(point) - .5*thickness*normal_vector
-            point2 = vector([round(i,2) for i in point2])
+            point2 = vector([round(i,1) for i in point2])
             print (point1), (point2)
             new_points.append(point1)
             new_points.append(point2)
