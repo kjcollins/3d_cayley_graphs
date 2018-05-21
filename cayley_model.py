@@ -761,14 +761,40 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
         EXAMPLES:
 
             Make all vertices invisible:
+                sage: U = ReflectionGroup((4))
+                sage: J = ReflectionGroup3d(U,  point=(20,9,7))
+                sage: V = J.vertices["color"].keys()
+                sage: J.visibility(False, vertices = V)
+                sage: J.plot3d()
+                Graphics3d Object
 
             Make all edges invisible:
+                sage: J.visibility(True, vertices = V)
+                sage: E = J.edges["color"].keys()
+                sage: J.visibility(False, edges = E)
+                sage J.plot3d()
+                Graphics3d Object
 
             Make all edges of a single reflection invisible:
+                sage: B3 = ReflectionGroup(["B",3])
+                sage: B = ReflectionGroup3d(B3)
+                sage: r1 = B.reflections[1]
+                sage: B.visibility(False, reflections = [r1])
+                sage: B.plot3d()
+                Graphics3d Object
 
-            Make group of edges invisible:
+            Make subset of edges invisible:
+                sage: A3 = ReflectionGroup(["A",3])
+                sage: A = ReflectionGroup3D(A3)
+                sage: A.visibility(False, edges = A.inside_edges())
+                sage: A.plot3d()
+                Graphics3d Object
 
-            Make group of vertices invisible:
+            Make subset of vertices invisible:
+                sage: odd = [a for a in A if a.sign() == -1]
+                sage: A.visibility(False, vertices = odd)
+                sage: A.plot3d()
+                Graphics3d Object
 
 
         """
