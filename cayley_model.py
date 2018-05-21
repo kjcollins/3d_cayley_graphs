@@ -77,26 +77,13 @@ AUTHORS:
 
 TODO:
     - Finish documenting what is implemented here
-    - implement setting vertex size, shape, and maybe one or two other parameters
     - set defaults for how thickness of edges affects fill (later, more logic can
       be implemented)
     - check developer guide for advice of where in Sage to submit this for review
     - implement addition of ReflectionGroup3d objects
-
     - note: changed proj plane default. see if we can notify why object doesn't appear
     with some planes?
     - also skewed initial point, that's important to avoid vertices overlapping
-
-    tests for:
-        - _verify_proj_plane
-
-    To test:
-        G(3,1,2)
-        G(6,2,2)
-        G4
-        A1 x A1
-        A1 x A2
-
 
     in tests:
         - check that optional package fails gracefully
@@ -1041,7 +1028,6 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
                 sage: G.vertex_color()
                 'purple'
 
-        TODO: this example.
         """
 
         if color is None:
@@ -1059,6 +1045,77 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             self.vertex_properties["color"] = color
             for v in self.group.list():
                 self.vertices["color"][v] = color
+
+    def vertex_radii(self):
+        """
+        Return the dictionary mapping vertices to their set colors.
+
+        EXAMPLES:
+        Return default radii::
+                sage: W = ReflectionGroup(['A',2])
+                sage: G = ReflectionGroup3d(W) # long time
+                sage: G.vertex_radii()
+                {(1,6,2)(3,5,4): 1.50000000000000, (1,3)(2,5)(4,6): 1.50000000000000,
+                (1,4)(2,3)(5,6): 1.50000000000000, (): 1.50000000000000,
+                (1,2,6)(3,4,5): 1.50000000000000, (1,5)(2,4)(3,6): 1.50000000000000}
+
+        Return colors after some have been set individually:
+                sage: W = ReflectionGroup(['A',2])
+                sage: G = ReflectionGroup3d(W) # long time
+                sage: G.vertex_radius(.5, vertices=G.group.list()[:2])
+                sage: G.vertex_radius(2, vertices=G.group.list()[3:5])
+                sage: G.vertex_radii()
+                {(1,6,2)(3,5,4): 2, (1,3)(2,5)(4,6): 0.500000000000000,
+                (1,4)(2,3)(5,6): 1.50000000000000, (): 0.500000000000000,
+                (1,2,6)(3,4,5): 2, (1,5)(2,4)(3,6): 1.50000000000000}
+
+        """
+        return self.vertices["radius"]
+
+
+    def vertex_radius(self, radius=None, **kwds):
+        """
+        Set the vertex radius for all vertices.
+
+        If called with no input, return the current model vertex radius setting.
+
+        INPUT:
+
+        - ``radius`` - a positive number
+        - ``vertices`` - a list of vertices to change the radius of.
+
+        EXAMPLES:
+
+        Change all the vertex radii to 1.5::
+                sage: W = ReflectionGroup(['A',3])
+                sage: G = ReflectionGroup3d(W) # long time
+                sage: G.vertex_radius(1.5)
+                sage: G.vertex_radius()
+                1.5
+
+        Change some to radius 3::
+                sage: W = ReflectionGroup(['A',3])
+                sage: G = ReflectionGroup3d(W) # long time
+                sage: G.vertex_radius(3, vertices=G.group.list()[:7])
+                sage: G.vertex_radii()
+                {(1,10,9,5)(2,6,8,12)(3,11,7,4): 1.50000000000000,
+                (1,4)(2,8)(3,5)(7,10)(9,11): 3,
+                (1,8,11)(2,5,7)(3,12,4)(6,10,9): 1.50000000000000,
+                ...
+                (1,12,5)(2,4,9)(3,8,10)(6,11,7): 1.50000000000000,
+                (1,7)(2,6)(3,9)(4,5)(8,12)(10,11): 3}
+
+        """
+
+        if radius is None:
+            return self.vertex_properties["radius"]
+        if "vertices" in kwds:
+            for v in kwds["vertices"]:
+                self.vertices["radius"][v] = radius
+        if len(kwds) == 0:
+            self.vertex_properties["radius"] = radius
+            for v in self.group.list():
+                self.vertices["radius"][v] = radius
 
 
     def plot3d(self):
@@ -1140,15 +1197,12 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             ['draw line_1 diameter 1 curve {-10.0 40.0 -60.0}  {-40.0 10.0 -30.0} ',
              'color $line_1  [102,102,255]']
 
-        ::
-            sage:
-            sage:
-            sage:
+        TODO:
 
+        -Include more parameters such as edge fill and opacity
         """
         edge_points = [self.vertices["position"][coset_elt] for coset_elt in coset]
         if len(edge_points) == 2:
-            # TODO parameters. KEEP INCLUDING MORE HERE
             return line3d(edge_points, color=self.edges["color"][coset], radius=self.edges["edge_thickness"][coset])
         else: # length is greater than 2
             edge_polyhedron = Polyhedron(vertices=edge_points)
@@ -1165,7 +1219,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             if not self.edges["fill"][coset] and not self.edges["boundaries"][coset]:
                 raise NotImplementedError("Visible edge has neither fill nor boundary!")
 
-            return _object # TODO parameters
+            return _object
 
 
     def _create_edge_boundaries(self, edge_polyhedron, coset):
