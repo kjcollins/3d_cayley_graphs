@@ -2,13 +2,17 @@
 Model building class for rigid 3d Cayley graphs of reflection groups.
 
 This class takes a reflection group and creates a rigid 3d model of the
-Cayley graph. Vertex placement is determined by the group action on $\mathbb{R}^3$
-and by default all reflections are included as generators. Higher order reflections
-are represented as filled in polygons since the ultimate purpose of this package
-is to create files that can be sent to a 3d printer and made "throwable," i.e.
-physically printed. The class can handle real reflection groups of rank at most 3,
-and complex reflection groups or rank at most 2, which are realized first in real
-4d and then parallel projected into 3d for visualization and printing.
+Cayley graph. Vertex placement is determined by the group action on
+$\mathbb{R}^3$ and by default all reflections are included as generators.
+Higher order reflections are represented as filled in polygons since the
+ultimate purpose of this package is to create files that can be sent to a 3d
+printer and made "throwable," i.e. physically printed. The class can handle
+real reflection groups of rank at most 3, and complex reflection groups or rank
+at most 2, which are realized first in real 4d and then parallel projected into
+3d for visualization and printing.
+
+To get a 3d printable file, use the Sage method .obj() and save output to a
+file. This defines the model as visualized (colors not included in this output).
 
 The point of entry for working with ReflectionGroup3d is
 :func:`sage.combinat.root_system.reflection_group_real.ReflectionGroup`,
@@ -76,34 +80,27 @@ AUTHORS:
 
 
 TODO:
-    - Finish documenting what is implemented here
-    - set defaults for how thickness of edges affects fill (later, more logic can
-      be implemented)
-    - check developer guide for advice of where in Sage to submit this for review
+    - Is there a better choice than SageObject for this class to inherit from?
+    - Can we require gap3 for using the class?
+    - Is the plot3d module an appropriate spot for this class?
+    - Is the warnings module appropriate the way we've used it?
+    - Can we optimize tests?
+    - We don't know why object doesn't appear (JMOL viewer doesn't open)
+      when some projection planes are used (e.g. [0,0,0,1]).
+      How to debug/notify?
     - implement addition of ReflectionGroup3d objects
-    - note: changed proj plane default. see if we can notify why object doesn't appear
-    with some planes?
-    - also skewed initial point, that's important to avoid vertices overlapping
 
-    in tests:
-        - check that optional package fails gracefully
-        - check that the model isn't plotted unnecessarily (slows down testing)
-        consider improving workflow for turning reflections on and off:
-        currently g_plot.visibility(False, reflections=[g_plot.group.reflections()[1], g_plot.group.reflections()[6]])
 """
 
 from sage.structure.sage_object import SageObject
-# from sage.plot.plot3d.base import Graphics3d
 from random import randint, seed
 from time import time
 import warnings
 warnings.simplefilter("always")
+# from sage.combinat.root_system.reflection_group_complex import ComplexReflectionGroup, IrreducibleComplexReflectionGroup
+# from sage.combinat.root_system.reflection_group_real import RealReflectionGroup, IrreducibleRealReflectionGroup
 
-from sage.combinat.root_system.reflection_group_complex import ComplexReflectionGroup, IrreducibleComplexReflectionGroup
-from sage.combinat.root_system.reflection_group_real import RealReflectionGroup, IrreducibleRealReflectionGroup
-
-
-class ReflectionGroup3d(SageObject): # could we inherit from something specific?
+class ReflectionGroup3d(SageObject):
     def __init__(self, group, point=(21,11,31), proj_plane=[1,2,3,4]):
         """
         EXAMPLES::
@@ -130,19 +127,20 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
         self._real_dimension(group)
 
         point = self._verify_point(group, point)
-        self.init_point = vector(point) # decide about vector construction
+        self.init_point = vector(point)
 
         self._verify_proj_plane(proj_plane)
         self.proj_plane = proj_plane
 
         self.reflections = self.group.reflections()
 
-        self.vertex_properties = {"radius":1.5,
+        self.vertex_properties = {"radius":1.50,
                                   "shape":"sphere",
                                   "label":None,
                                   "visible":True,
                                   "position":None,
                                   "color":"gray"}
+
         self.vertices = {}
         self._construct_vertices_dict()
 
@@ -150,21 +148,15 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
                                 "color":None,
                                 "fill":True,
                                 "fill_size": .5,
-                                "boundaries": True, # TODO edge fill parameters implementation
+                                "boundaries": True,
                                 "boundary_thickness":1,
                                 "visible":True}
-        # IDEA: only include "boundaries" if the group chosen has edges that can use them?
 
-        # if x param exists: set it
-        # else: add default
         self.edges = {}
         self._construct_edges_dict()
 
+        self.outside_edge_dictionary = {}
         self._outside_edges()
-
-
-        # get methods, set methods, and how plot3d will take parameters
-        # are the visualization things that the constructor doesn't cover
 
 
     def __repr__(self):
@@ -189,20 +181,21 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
 
         OUTPUT:
 
-        Boolean True if W is a complex reflection group of rank at most 2 or a is_real
-        reflection group of rank at most 3. If False, returns an error message.
+        Boolean True if W is a complex reflection group of rank at most 2 or
+        a is_real reflection group of rank at most 3. If False, returns an
+        error message.
 
         EXAMPLES:
 
         ::
 
-            sage: W = ReflectionGroup(["C",3]) #long time
-            sage: ReflectionGroup3d(W) #long time
+            sage: W = ReflectionGroup(["C",3])          # optional - gap3
+            sage: ReflectionGroup3d(W)                  # long time
             Rigid graphical representation of Irreducible real reflection group of rank 3 and type C3
 
         If the group's rank is too big::
 
-            sage: W = ReflectionGroup((5,1,3))
+            sage: W = ReflectionGroup((5,1,3))          # optional - gap3
             sage: ReflectionGroup3d(W)
             Traceback (most recent call last):
             ...
@@ -210,7 +203,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
 
         If the group is in the wrong format::
 
-            sage: W = SymmetricGroup(4)
+            sage: W = SymmetricGroup(4)                 # optional - gap3
             sage: ReflectionGroup3d(W)
             Traceback (most recent call last):
             ...
@@ -218,13 +211,17 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
 
 
         TODO:
-        - replace group_types with the list of categories we want to allow, rather than hardcoding from example groups
+        - replace group_types with the list of categories we want to allow,
+        rather than hardcoding from example groups
 
         """
         # group_types = [IrreducibleComplexReflectionGroup, IrreducibleRealReflectionGroup, ComplexReflectionGroup, RealReflectionGroup]
-        group_types = [ReflectionGroup((3,1,2)).parent(),ReflectionGroup(["A",2]).parent(), ReflectionGroup(["A", 2], ["B", 1]).parent(), ReflectionGroup((6,2,2)).parent()]
-        # print(g_cat for gcat.categories) ## TODO
-        # if group.parent() in group_types:
+        # TODO: group_types should be implemented with a category that covers
+        # all of the groups we can visualize. How?
+        group_types = [ReflectionGroup((3,1,2)).parent(),
+                       ReflectionGroup(["A",2]).parent(),
+                       ReflectionGroup(["A", 2], ["B", 1]).parent(),
+                       ReflectionGroup((6,2,2)).parent()]
         if type(group) in group_types:
             if group.rank() < 3:
                 return True
@@ -253,15 +250,15 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
 
         EXAMPLES:
 
-        ::
-            sage: W = ReflectionGroup(["C",3])
-            sage: A = ReflectionGroup3d(W) # long time
+        Get real dimension of the visualized group::
+            sage: W = ReflectionGroup(["C",3])          # optional - gap3
+            sage: A = ReflectionGroup3d(W)              # long time
             sage: A.real_dimension
             3
 
-        ::
-            sage: W = ReflectionGroup((3,1,2))
-            sage: A = ReflectionGroup3d(W) # long time
+        The real dimension of a complex group is twice its rank::
+            sage: W = ReflectionGroup((3,1,2))          # optional - gap3
+            sage: A = ReflectionGroup3d(W)              # long time
             doctest:warning
             ...
             UserWarning: Point was shortened to match group rank
@@ -292,7 +289,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
 
         EXAMPLES:
 
-        ::
+        A rank 3 group requires a rank 3 point::
             sage: W = ReflectionGroup(["C",3])
             sage: my_point = (1,2)
             sage: ReflectionGroup3d(W, my_point)
@@ -300,7 +297,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             ...
             TypeError: Check dimension of point (does not match group rank)
 
-        ::
+        Any rank 3 point will work::
             sage: W = ReflectionGroup(["C",3])
             sage: my_point_1 = (1,2,3)
             sage: ReflectionGroup3d(W, my_point_1) # long time
@@ -343,14 +340,12 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             ...
             TypeError: A non-zero normal vector in R^4 is required to determine a plane.
 
-
         """
         if len(plane) == 4:
             if [plane[k] in RR for k in range(4)] == [True, True, True, True]:
                 if tuple(plane) != (0,0,0,0):
                     return True
         raise TypeError("A non-zero normal vector in R^4 is required to determine a plane.")
-
 
 
     def _construct_vertices_dict(self):
@@ -374,6 +369,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
 
         EXAMPLES:
 
+        A rank 2 real reflection group still returns points in $\mathbb{R}^3$:
             sage: W = ReflectionGroup(["A",2])
             sage: G = ReflectionGroup3d(W, (3,2))
             sage: G.vertex_properties.keys()
@@ -384,28 +380,27 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
         """
         def pad_position(v, point):
             pos = v.matrix()*point
-            # tup_pos = tuple(v.matrix()*point)
             if self.real_dimension < 3:
-                # print "??", vector(tuple(pos)+((0,)*(3-len(pos))))
                 return vector(tuple(pos)+((0,)*(3-len(pos))))
             elif self.real_dimension == 3:
-                # print "?", pos
                 return pos
             else:
-                pos4d = vector((CC(pos[0]).real_part(), CC(pos[0]).imag_part(), CC(pos[1]).real_part(), CC(pos[1]).imag_part()))
-                proj_pos4d = pos4d - vector(self.proj_plane).normalized().dot_product(pos4d)*vector(self.proj_plane).normalized()
-
+                x1, x2 = CC(pos[0]).real_part(), CC(pos[0]).imag_part()
+                x3, x4 = CC(pos[1]).real_part(), CC(pos[1]).imag_part()
+                pos4d = vector((x1, x2, x3, x4))
+                norm = vector(self.proj_plane).normalized()
+                proj_pos4d = pos4d - norm.dot_product(pos4d)*norm
                 return vector([round(num,0) for num in proj_pos4d[0:3]])
 
         for key, value in self.vertex_properties.items():
             if key=="position":
                 self.vertices[key] = \
                 {v:pad_position(v, self.init_point) for v in self.group.list()}
-                # TODO warn if same
+
                 positions = [tuple(vec) for vec in self.vertices["position"].values()]
+
                 if len(set(positions)) < len(positions):
                     warnings.warn("Vertex positions overlap. Use a different initial point to change.")
-                # style?
             else:
                 self.vertices[key] = {v:value for v in self.group.list()}
 
@@ -421,6 +416,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
 
         EXAMPLES:
 
+        Edges are recorded as cosets:
             sage: W = ReflectionGroup(["A",2])
             sage: G = ReflectionGroup3d(W, (3,2))
             sage: G.edge_properties.keys()
@@ -468,14 +464,15 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
                     for e in self.group.cosets(subgp):
                         self.edges[key][tuple(e)] = color
             else:
-                # defaults
+                # Use defaults from edge_properties
                 self.edges[key] = {tuple(e):value for e in cosets}
 
 
-    def _outside_edges(self): # private creation method
+    def _outside_edges(self):
         """
-        Creates a dictionary which categorizes edges as begin 1-faces of the polytope,
-        contained in 2-faces of the polytope, or internal to the structure.
+        Creates a dictionary which categorizes edges as begin 1-faces of the
+        polytope, contained in 2-faces of the polytope, or internal to the
+        structure.
 
         EXAMPLES:
 
@@ -495,7 +492,6 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
 
         """
         convex_bounding_polyhedron = Polyhedron(vertices = self.vertices["position"].values())
-        outside_edge_dictionary = {}
         faces1_by_vertices = []
         faces2_by_vertices = []
         for face in (convex_bounding_polyhedron.faces(1)):
@@ -508,7 +504,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             for i in range(len(face.vertices())):
                 face_vertices.append(tuple(face.vertices()[i]))
             faces2_by_vertices.append(set(face_vertices))
-        one_faces_list = []
+        self._one_faces = []
         outside_list = []
         inside_list = []
         for k in self.group.reflections():
@@ -518,19 +514,17 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
                 for grp_elm in self.group.cosets(S)[j]:
                     coordinates = tuple(self.vertices["position"][grp_elm])
                     vertex_set.append(coordinates)
-                # print vertex_set
-                outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "internal edge"
+
+                self.outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "internal edge"
                 if set(vertex_set) in faces1_by_vertices:
-                    outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "1-face"
-                    one_faces_list.append(tuple(self.group.cosets(S)[j]))
+                    self.outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "1-face"
+                    self._one_faces.append(tuple(self.group.cosets(S)[j]))
                 else:
                     for two_face in faces2_by_vertices:
                         if set(vertex_set).issubset(two_face):
-                            outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "external edge"
+                            self.outside_edge_dictionary[tuple(self.group.cosets(S)[j])] = "external edge"
                             outside_list.append(tuple(self.group.cosets(S)[j]))
-                # print outside_edge_dictionary[tuple(self.group.cosets(S)[j])]
 
-        self.outside_edge_dictionary = outside_edge_dictionary
 
     def one_faces(self, **kwds):
         """
@@ -559,17 +553,15 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             sage: G.plot3d()
             Graphics3d Object
         """
-        one_faces = [i for i,j in self.outside_edge_dictionary.items() if j == "1-face"] # TODO could be saved state and not calculated twice
         if len(kwds) == 0:
-            return one_faces
+            return self._one_faces
         if "color" in kwds:
-            self.edge_color(color=kwds["color"],edges=one_faces)
+            self.edge_color(color=kwds["color"],edges=self._one_faces)
         if "thickness" in kwds:
-            self.edge_thickness(edge_thickness=kwds["thickness"], edges=one_faces)
+            self.edge_thickness(edge_thickness=kwds["thickness"], edges=self._one_faces)
 
 
-    def outside_edges(self, **kwds):   # public get/set method
-
+    def outside_edges(self, **kwds):
         """
         Allows user to change properties of edges that are on the exterior of the convex hull.
 
@@ -583,7 +575,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
 
         EXAMPLES:
 
-        ::
+        Change visualization parameters of outside edges::
             sage: W = ReflectionGroup(["A",3])
             sage: G = ReflectionGroup3d(W)
             sage: G.outside_edges(color = "black", thickness =.5)
@@ -594,9 +586,8 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             sage: G.edges["edge_thickness"][G.outside_edges()[0]]
             0.5
         """
-        one_faces = [i for i,j in self.outside_edge_dictionary.items() if j == "1-face"]
         exterior_edges = [i for i,j in self.outside_edge_dictionary.items() if j == "external edge"]
-        outside_edges = union(one_faces, exterior_edges)
+        outside_edges = union(self._one_faces, exterior_edges)
         if len(kwds) == 0:
             return outside_edges
         if "color" in kwds:
@@ -755,7 +746,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
 
         if edge_thickness == None:
             return self.edge_properties["edge_thickness"]
-        edge_thickness = round(edge_thickness, 3)
+        edge_thickness = round(edge_thickness, 2)
         if edge_thickness == 0:
             raise RuntimeError('Use visibility method to make edges disappear')
         if "reflections" in kwds:
@@ -774,7 +765,8 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
 
     def visibility(self, visible, **kwds):
         """
-        Sets visibility of edges, reflections, vertices, or groups of vertices on or off.
+        Sets visibility of edges, reflections, vertices, or groups of
+        vertices on or off.
 
         INPUT:
             A boolean for whether the visibility of the selected object should
@@ -826,10 +818,8 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
 
         """
         if visible == None:
-            return self.edge_properties["visible"], self.vertex_properties["visible"]
-
-        # if type(_object) == type([]):
-            # pass
+            return self.edge_properties["visible"], \
+                    self.vertex_properties["visible"]
 
         if "reflections" in kwds:
             for r in kwds["reflections"]:
@@ -842,11 +832,6 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
         if "vertices" in kwds:
             for v in kwds["vertices"]:
                 self.vertices["visible"][v] = visible
-        #
-        # if len(kwds) == 0:
-        #     self.edge_properties["visible"] = visible
-        #     for e in self.edges["visible"].keys():
-        #         self.edges["visible"][tuple(e)] = visible
 
 
     def edge_colors(self):
@@ -867,7 +852,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             sage: set(G.edge_colors().values()) == set(rainbow(len(G.reflections)))
             True
 
-        ::
+        Make all edges red::
             sage: W = ReflectionGroup((2,1,2))
             sage: G = ReflectionGroup3d(W)
             doctest:warning
@@ -917,7 +902,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             return self.edge_properties["color"]
         if "reflections" in kwds:
             for r in kwds["reflections"]:
-                for e in self.list_edges(r): #make self.edges(r) return the list of edges for reflection r
+                for e in self.list_edges(r):
                     self.edges["color"][e] = color
         if "edges" in kwds:
             for e in kwds["edges"]:
@@ -1029,7 +1014,6 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
                 'purple'
 
         """
-
         if color is None:
             try:
                 return self.vertex_properties["color"]
@@ -1037,7 +1021,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
                 self.vertex_properties["color"] = "gray"
                 self.vertices["color"] = {v:color for v in self.group.list()}
                 return self.vertex_properties["color"]
-        # self.vertex_properties["color"]=rgbcolor(c)
+
         if "vertices" in kwds:
             for v in kwds["vertices"]:
                 self.vertices["color"][v] = color
@@ -1071,8 +1055,8 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
                 doctest:warning
                 ...
                 UserWarning: Point was shortened to match group rank
-                sage: G.vertex_radius(.5, vertices=G.group.list()[:2])
-                sage: G.vertex_radius(2, vertices=G.group.list()[3:5])
+                sage: G.vertex_radius(.50, vertices=G.group.list()[:2])
+                sage: G.vertex_radius(2.00, vertices=G.group.list()[3:5])
                 sage: G.vertex_radii()
                 {(): 0.5,
                  (1,2,6)(3,4,5): 2.0,
@@ -1080,7 +1064,6 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
                  (1,4)(2,3)(5,6): 1.5,
                  (1,5)(2,4)(3,6): 1.5,
                  (1,6,2)(3,5,4): 2.0}
-
 
         """
         return self.vertices["radius"]
@@ -1102,17 +1085,17 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
         Change all the vertex radii to 1.5::
                 sage: W = ReflectionGroup(['A',3])
                 sage: G = ReflectionGroup3d(W) # long time
-                sage: G.vertex_radius(1.5)
+                sage: G.vertex_radius(1.50)
                 sage: G.vertex_radius()
                 1.5
 
         Change some to radius 3::
                 sage: W = ReflectionGroup(['A',3])
                 sage: G = ReflectionGroup3d(W) # long time
-                sage: G.vertex_radius(3, vertices=G.group.list()[:7])
+                sage: G.vertex_radius(3.00, vertices=G.group.list()[:7])
                 sage: G.vertex_radii()
-                {(): 3,
-                 (2,5)(3,9)(4,6)(8,11)(10,12): 3,
+                {(): 3.0,
+                 (2,5)(3,9)(4,6)(8,11)(10,12): 3.0,
                  (1,2,3,12)(4,5,10,11)(6,7,8,9): 1.5,
                  (1,2,10)(3,6,5)(4,7,8)(9,12,11): 1.5,
                  ...
@@ -1126,11 +1109,11 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             return self.vertex_properties["radius"]
         if "vertices" in kwds:
             for v in kwds["vertices"]:
-                self.vertices["radius"][v] = round(radius,1)
+                self.vertices["radius"][v] = round(radius,2)
         if len(kwds) == 0:
-            self.vertex_properties["radius"] = round(radius,1)
+            self.vertex_properties["radius"] = round(radius,2)
             for v in self.group.list():
-                self.vertices["radius"][v] = round(radius,1)
+                self.vertices["radius"][v] = round(radius,2)
 
 
     def plot3d(self):
@@ -1141,17 +1124,9 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
         This method does not take inputs; changes to parameters should
         be made using the setter methods.
 
-        (2018-03-15): Setter methods are not currently implemented.
-
         EXAMPLES:
 
-            sage: W = ReflectionGroup(['A',3])
-            sage: G = ReflectionGroup3d(W) # long time
-            sage: G.plot3d() #long time
-            Graphics3d Object
-
-        ::
-
+        Plotting the Reflection3d object opens a JMOL viewer by default:
             sage: W = ReflectionGroup(['A',3])
             sage: G = ReflectionGroup3d(W) # long time
             sage: G.plot3d() #long time
@@ -1165,7 +1140,6 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
         TODO:
             Permit 4d real and 2d complex reflection group visualization
             using
-                - Orthogonal projection using proj_plane
                 - Schlegel projection
                 - Stereographic projection
 
@@ -1182,7 +1156,6 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
                     order3 += 1
                 x += self._create_edge(edge)
 
-        # print "order 2", order2, "order 3", order3
         for vertex, visible in self.vertices['visible'].items():
             if visible:
                 x += sphere(self.vertices["position"][vertex],
@@ -1208,27 +1181,29 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
         ::
             sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3])) # long time
             sage: edge = w._create_edge(w.edges["visible"].keys()[0])
-            sage: print(edge.jmol_repr(edge.default_render_params())) # TODO: this color is generated randomly. Need to test better
-            ['draw line_1 diameter 1 curve {-10.0 40.0 -60.0}  {-40.0 10.0 -30.0} ',
-             'color $line_1  [102,102,255]']
+            sage: print(edge.jmol_repr(edge.default_render_params()))
+            [[['\ndraw line_1 width 1.0 {-11.0 42.0 -63.0}
+            {-42.0 11.0 -32.0}\ncolor $line_1  [0,255,255]\n']]]
 
         TODO:
 
         -Include more parameters such as edge fill and opacity
         """
-        edge_points = [self.vertices["position"][coset_elt] for coset_elt in coset]
+        edge_points = [self.vertices["position"][cos_elt] for cos_elt in coset]
         if len(edge_points) == 2:
-            return line3d(edge_points, color=self.edges["color"][coset], radius=self.edges["edge_thickness"][coset])
+            return line3d(edge_points, color=self.edges["color"][coset], \
+            radius=self.edges["edge_thickness"][coset])
         else: # length is greater than 2
             edge_polyhedron = Polyhedron(vertices=edge_points)
             if len(edge_polyhedron.faces(2)) == 0:
-                return line3d(edge_points, color=self.edges["color"][coset], radius=self.edges["edge_thickness"][coset])
+                return line3d(edge_points, color=self.edges["color"][coset], \
+                radius=self.edges["edge_thickness"][coset])
 
             _object = sage.plot.plot3d.base.Graphics3dGroup([])
-            if self.edges["fill"][coset]: #fix
+            if self.edges["fill"][coset]:
                 _object += self._thicken_polygon(edge_polyhedron, coset)
-                #            self.edges["boundary_thickness"][coset])
-            if self.edges["boundaries"][coset]: #fix
+
+            if self.edges["boundaries"][coset]:
                 _object += self._create_edge_boundaries(edge_polyhedron, coset)
 
             if not self.edges["fill"][coset] and not self.edges["boundaries"][coset]:
@@ -1251,6 +1226,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
 
         EXAMPLES:
 
+        A polyhedron edge can be bordered by lines:
             sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3])) # long time
             sage: poly = Polyhedron(vertices = [[1, 2, 3], [0,1,0], [1,0,1]])
             sage: edge_boundaries = w._create_edge_boundaries(poly, w.edges["visible"].keys()[0])
@@ -1258,14 +1234,11 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             [Graphics3d Object]
 
         TODO:
-
-        - provide more visualization options for object.
+            - provide more visualization options for object.
         """
         _object = sage.plot.plot3d.base.Graphics3dGroup([])
-        # print edge_polyhedron.faces(1)
 
-        # print edge_polyhedron.faces(2) # SHOULD BE TWO, changed while debugging projection
-        edge_face = edge_polyhedron.faces(2)[0] # SHOULD BE TWO, changed while debugging projection
+        edge_face = edge_polyhedron.faces(2)[0]
         v_list = list(edge_face.vertices())
         v_list.append(edge_face.vertices()[0])
         _object += line3d(v_list, color=self.edges["color"][coset], radius=1)
@@ -1290,7 +1263,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
         Example of a polygon edge::
             sage: w = ReflectionGroup3d(ReflectionGroup(["A", 3])) # long time
             sage: p = Polyhedron(vertices = [[1, 2, 3], [0,1,0], [1,0,1]])
-            sage: poly_3d = w._thicken_polygon(p, w.edges["visible"].keys()[0]) # test had .01 as second arg originally?
+            sage: poly_3d = w._thicken_polygon(p, w.edges["visible"].keys()[0])
             sage: poly_3d.all
             [Graphics3d Object,
              Graphics3d Object,
@@ -1307,13 +1280,15 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
         """
         thickness = self.edges["boundary_thickness"][coset]
         fill = self.edges["fill_size"][coset]
-        # print "COSET", str(coset)
 
         new_points = []
-        # print polytope_in_2d.vertices()
-        long_normal_vector = vector(CC,((vector(polytope_in_2d.vertices()[1]) - vector(polytope_in_2d.vertices()[0])).cross_product(vector(polytope_in_2d.vertices()[2]) - vector(polytope_in_2d.vertices()[0]))).normalized())
+        vec = [] # points as vectors
+        for poly in polytope_in_2d.vertices():
+            vec.append(vector(poly))
+        orth = vector(CC,(vec[1] - vec[0])).cross_product(vec[2] - vec[0])
+        norm = orth.normalized()
         rounded_vector = []
-        for entry in list(long_normal_vector):
+        for entry in list(norm):
             rounded_vector.append(round(entry,3))
         normal_vector = vector(rounded_vector)
 
@@ -1322,7 +1297,7 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             point1 = vector([round(i,1) for i in point1])
             point2 = vector(point) - fill*thickness*normal_vector
             point2 = vector([round(i,1) for i in point2])
-            # print (point1), (point2)
+
             new_points.append(point1)
             new_points.append(point2)
 
