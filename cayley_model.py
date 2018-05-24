@@ -1054,20 +1054,33 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
         Return default radii::
                 sage: W = ReflectionGroup(['A',2])
                 sage: G = ReflectionGroup3d(W) # long time
+                doctest:warning
+                ...
+                UserWarning: Point was shortened to match group rank
                 sage: G.vertex_radii()
-                {(1,6,2)(3,5,4): 1.50000000000000, (1,3)(2,5)(4,6): 1.50000000000000,
-                (1,4)(2,3)(5,6): 1.50000000000000, (): 1.50000000000000,
-                (1,2,6)(3,4,5): 1.50000000000000, (1,5)(2,4)(3,6): 1.50000000000000}
+                {(): 1.5,
+                 (1,2,6)(3,4,5): 1.5,
+                 (1,3)(2,5)(4,6): 1.5,
+                 (1,4)(2,3)(5,6): 1.5,
+                 (1,5)(2,4)(3,6): 1.5,
+                 (1,6,2)(3,5,4): 1.5}
 
         Return colors after some have been set individually:
                 sage: W = ReflectionGroup(['A',2])
                 sage: G = ReflectionGroup3d(W) # long time
+                doctest:warning
+                ...
+                UserWarning: Point was shortened to match group rank
                 sage: G.vertex_radius(.5, vertices=G.group.list()[:2])
                 sage: G.vertex_radius(2, vertices=G.group.list()[3:5])
                 sage: G.vertex_radii()
-                {(1,6,2)(3,5,4): 2, (1,3)(2,5)(4,6): 0.500000000000000,
-                (1,4)(2,3)(5,6): 1.50000000000000, (): 0.500000000000000,
-                (1,2,6)(3,4,5): 2, (1,5)(2,4)(3,6): 1.50000000000000}
+                {(): 0.5,
+                 (1,2,6)(3,4,5): 2.0,
+                 (1,3)(2,5)(4,6): 0.5,
+                 (1,4)(2,3)(5,6): 1.5,
+                 (1,5)(2,4)(3,6): 1.5,
+                 (1,6,2)(3,5,4): 2.0}
+
 
         """
         return self.vertices["radius"]
@@ -1098,12 +1111,14 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
                 sage: G = ReflectionGroup3d(W) # long time
                 sage: G.vertex_radius(3, vertices=G.group.list()[:7])
                 sage: G.vertex_radii()
-                {(1,10,9,5)(2,6,8,12)(3,11,7,4): 1.50000000000000,
-                (1,4)(2,8)(3,5)(7,10)(9,11): 3,
-                (1,8,11)(2,5,7)(3,12,4)(6,10,9): 1.50000000000000,
-                ...
-                (1,12,5)(2,4,9)(3,8,10)(6,11,7): 1.50000000000000,
-                (1,7)(2,6)(3,9)(4,5)(8,12)(10,11): 3}
+                {(): 3,
+                 (2,5)(3,9)(4,6)(8,11)(10,12): 3,
+                 (1,2,3,12)(4,5,10,11)(6,7,8,9): 1.5,
+                 (1,2,10)(3,6,5)(4,7,8)(9,12,11): 1.5,
+                 ...
+                 (1,11,8)(2,7,5)(3,4,12)(6,9,10): 1.5,
+                 (1,12,3,2)(4,11,10,5)(6,9,8,7): 1.5,
+                 (1,12,5)(2,4,9)(3,8,10)(6,11,7): 1.5}
 
         """
 
@@ -1111,11 +1126,11 @@ class ReflectionGroup3d(SageObject): # could we inherit from something specific?
             return self.vertex_properties["radius"]
         if "vertices" in kwds:
             for v in kwds["vertices"]:
-                self.vertices["radius"][v] = radius
+                self.vertices["radius"][v] = round(radius,1)
         if len(kwds) == 0:
-            self.vertex_properties["radius"] = radius
+            self.vertex_properties["radius"] = round(radius,1)
             for v in self.group.list():
-                self.vertices["radius"][v] = radius
+                self.vertices["radius"][v] = round(radius,1)
 
 
     def plot3d(self):
